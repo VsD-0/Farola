@@ -47,7 +47,7 @@ namespace Farola.API.Controllers
         public async Task<IActionResult> SignIn([FromBody] AuthCommand authCommand)
         {
             var token = await _mediator.Send(authCommand);
-            return token is not null ? Ok(token) : BadRequest("Ошибка авторизации");
+            return token is not null ? Ok(token) : BadRequest("Пользователь не найден");
         }
     }
 }

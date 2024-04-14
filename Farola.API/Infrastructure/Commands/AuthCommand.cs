@@ -8,6 +8,7 @@ using Microsoft.EntityFrameworkCore;
 using System.IdentityModel.Tokens.Jwt;
 using Microsoft.IdentityModel.Tokens;
 using Farola.API.Infrastructure.Extensions;
+using System.Reflection.Metadata.Ecma335;
 
 namespace Farola.API.Infrastructure.Commands
 {
@@ -47,10 +48,12 @@ namespace Farola.API.Infrastructure.Commands
             _context = context;
         }
 
-        public async Task<string> Handle(AuthCommand request, CancellationToken cancellationToken)
+        public async Task<string?> Handle(AuthCommand request, CancellationToken cancellationToken)
         {
             // Получение пользователя по его логину
-            var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == request.Email);
+            var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == request.Email) ?? throw new ArgumentNullException(nameof(request.Email), "Пользователь не найден");
+
+            if (user == null) return null;
 
             var jwtSettings = _configuration.GetSection("JwtSettings").Get<JwtSettings>();
 

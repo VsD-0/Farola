@@ -1,0 +1,60 @@
+﻿@page "/user/signin"
+@using Farola.API
+@using Farola.Domain.Models
+@using Farola.ViewModels
+@using Refit
+
+@inject IUserClient UserAPI
+@inject IJSRuntime JsRuntime
+@inject NavigationManager Navigation
+
+<FluentStack HorizontalAlignment="HorizontalAlignment.Center" VerticalAlignment="VerticalAlignment.Center">
+    <FluentCard Width="400px" Height="400px">
+        <FluentTextField @bind-Value=email TextFieldType="TextFieldType.Email" Spellcheck="true" Placeholder="Введите эл. почту" Label="Эл. почта"/>
+        <FluentLabel>@error_email</FluentLabel>
+        <FluentTextField @bind-Value=password TextFieldType="TextFieldType.Password" Placeholder="Введите пароль" Label="Пароль"/>
+        <FluentLabel>@error_password</FluentLabel>
+        <FluentButton OnClick="Login">Войти</FluentButton>
+    </FluentCard>
+</FluentStack>
+
+@code {
+    private string email;
+    private string password;
+    private string error_email;
+    private string error_password;
+
+    private async void Login()
+    {
+        try
+        {
+            await UserAPI.SignIn(new AuthModel
+            {
+                Email = email,
+                Password = password
+            });
+            Navigation.NavigateTo("/professional/all");
+        }
+        catch (ValidationApiException ex)
+        {
+            var errors = ex.Content is not null ? ex.Content.Errors : new();
+
+            foreach (var item in errors.Keys)
+            {
+                switch (item)
+                {
+                    case "Email":
+                        error_email = errors[item].First();
+                        break;
+                    case "Password":
+                        error_password = errors[item].First();
+                        break;
+                    default:
+                        await JsRuntime.InvokeVoidAsync("alert", ex);
+                        break;
+                }
+            }
+        }
+        catch (Exception ex) { await JsRuntime.InvokeVoidAsync("alert", ex); }
+    }
+}

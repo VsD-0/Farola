@@ -1,0 +1,71 @@
+﻿@page "/professional/all"
+@using Farola.API
+@using Farola.Domain.Models
+@inject HttpClient Http
+@inject IProfessionalClient ProfessionalAPI
+
+<PageTitle>Профессионалы</PageTitle>
+
+<h1>Профессионалы</h1>
+
+@if (pros == null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <FluentStack Orientation="Orientation.Vertical">
+        @foreach (var item in pros.Items)
+        {
+            <FluentCard Height="175px">
+                <FluentStack VerticalAlignment="VerticalAlignment.Center">
+                    <FluentPersona Image="@(new Icons.Filled.Size48.Person().ToDataUri(size: "40px", color: "white"))" ImageSize="80px"></FluentPersona>
+                    <FluentStack Orientation="Orientation.Vertical" VerticalGap="2"> 
+                        <FluentLabel Typo="Typography.H3">@item.Profession</FluentLabel>
+                        <FluentLabel Typo="Typography.Body">@item.Specialization</FluentLabel>
+                        <FluentSpacer/>
+                        <FluentLabel Typo="Typography.Body">@item.Surname @item.Name</FluentLabel>
+                        <FluentLabel Typo="Typography.Body">@item.Email</FluentLabel>
+                        <FluentSpacer />
+                        <FluentLabel Typo="Typography.Body">@item.Area</FluentLabel>
+                    </FluentStack>
+                    <FluentLabel Typo="Typography.Body">@item.Information</FluentLabel>
+                </FluentStack>
+            </FluentCard>
+        }
+    </FluentStack>
+
+    <FluentStack Orientation="Orientation.Horizontal">
+        <FluentButton OnClick="Preview">Назад</FluentButton>
+        <FluentLabel>@pros.Pagination.CurrentPage</FluentLabel>
+        <FluentButton OnClick="Next">Вперёд</FluentButton>
+    </FluentStack>
+
+    
+}
+
+@code {
+    private PaginatedResult<UserDTO> pros;
+    private int pageNumber = 1;
+
+    protected override async Task OnInitializedAsync()
+    {
+        pros = await ProfessionalAPI.GetProfessionals(pageNumber, 2);
+    }
+    private async void Preview()
+    {
+        if (pros.Pagination.CurrentPage > 1)
+        {
+            --pageNumber;
+            pros = await ProfessionalAPI.GetProfessionals(pageNumber, 2);
+        }
+    }
+    private async void Next()
+    {
+        if (pros.Pagination.TotalPages != pros.Pagination.CurrentPage)
+        {
+            ++pageNumber;
+            pros = await ProfessionalAPI.GetProfessionals(pageNumber, 2);
+        }
+    }
+}
