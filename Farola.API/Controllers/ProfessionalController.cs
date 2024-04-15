@@ -5,6 +5,7 @@ using Farola.Domain.Models;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using System.Net;
 
 
@@ -18,12 +19,22 @@ namespace Farola.API.Controllers
     public class ProfessionalController : Controller
     {
         private readonly IMediator _mediator;
-        public ProfessionalController(IMediator mediator) => _mediator = mediator;
-
+        private readonly FarolaContext _context;
+        public ProfessionalController(IMediator mediator, FarolaContext context)
+        { 
+            _mediator = mediator;
+            _context = context;
+        }
         [HttpGet("GetProfessionals")]
-        public async Task<IActionResult> GetProfessionals(int pageNumber, int pageSize)
+        public async Task<IActionResult> GetProfessionals(int pageNumber, int pageSize, string? profession, string? specialization)
         {
-            return Ok(await _mediator.Send(new GetProfessionalsQuerie { PageNumber = pageNumber, PageSize = pageSize }));
+            return Ok(await _mediator.Send(new GetProfessionalsQuerie { PageNumber = pageNumber, PageSize = pageSize, Profession = profession, Specialization = specialization }));
+        }
+
+        [HttpGet("GetSpecializations")]
+        public async Task<IActionResult> GetSpecializations()
+        {
+            return Ok(_context.Specializations.AsEnumerable()); 
         }
 
         /// <summary>

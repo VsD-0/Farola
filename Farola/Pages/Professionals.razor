@@ -1,12 +1,14 @@
 ﻿@page "/professional/all"
 @using Farola.API
+@using Farola.Database.Models
 @using Farola.Domain.Models
 @inject HttpClient Http
 @inject IProfessionalClient ProfessionalAPI
 
-<PageTitle>Профессионалы</PageTitle>
+<PageTitle>Специалисты</PageTitle>
 
-<h1>Профессионалы</h1>
+<FluentStack Orientation="Orientation.Vertical">
+<h1>Специалисты</h1>
 
 @if (pros == null)
 {
@@ -15,6 +17,11 @@
 else
 {
     <FluentStack Orientation="Orientation.Vertical">
+        <FluentStack Orientation="Orientation.Horizontal">
+            <FluentSearch @bind-Value=prof Placeholder="Введите необходимого специалиста" Label="Профессия"/>
+                <FluentCombobox @bind-Value=spec Label="Специализация" Items="@specs" OptionText="@(s => s.Name)" OptionValue="@(s => s.Id.ToString())"/>
+            <FluentButton OnClick="Search"></FluentButton>
+        </FluentStack>
         @foreach (var item in pros.Items)
         {
             <FluentCard Height="175px">
@@ -39,33 +46,45 @@ else
         <FluentButton OnClick="Preview">Назад</FluentButton>
         <FluentLabel>@pros.Pagination.CurrentPage</FluentLabel>
         <FluentButton OnClick="Next">Вперёд</FluentButton>
-    </FluentStack>
-
-    
+    </FluentStack>   
 }
+</FluentStack>
 
 @code {
+    private FluentMenuButton menubutton = new();
+
     private PaginatedResult<UserDTO> pros;
+    private IEnumerable<Specialization> specs;
     private int pageNumber = 1;
+    private string? prof = null;
+    private string? spec = null;
 
     protected override async Task OnInitializedAsync()
     {
-        pros = await ProfessionalAPI.GetProfessionals(pageNumber, 2);
+        pros = await ProfessionalAPI.GetProfessionals(pageNumber, 2, prof, spec);
+        specs = await ProfessionalAPI.GetSpecializations();
     }
-    private async void Preview()
+
+    private async Task Search()
+    {
+        pros = await ProfessionalAPI.GetProfessionals(pageNumber, 2, prof, spec);
+    }
+
+    private async Task Preview()
     {
         if (pros.Pagination.CurrentPage > 1)
         {
             --pageNumber;
-            pros = await ProfessionalAPI.GetProfessionals(pageNumber, 2);
+            pros = await ProfessionalAPI.GetProfessionals(pageNumber, 2, prof, spec);
         }
     }
-    private async void Next()
+
+    private async Task Next()
     {
         if (pros.Pagination.TotalPages != pros.Pagination.CurrentPage)
         {
             ++pageNumber;
-            pros = await ProfessionalAPI.GetProfessionals(pageNumber, 2);
+            pros = await ProfessionalAPI.GetProfessionals(pageNumber, 2, prof, spec);
         }
     }
 }

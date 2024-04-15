@@ -25,9 +25,16 @@ namespace Farola.API.Infrastructure.Queries
         public int PageSize { get; set; }
 
         /// <summary>
-        /// Список документов
+        ///Профессия
         /// </summary>
-        /// <example>5</example>
+        /// <example>Веб разработчик</example>
+        public string? Profession { get; set; }
+
+        /// <summary>
+        /// Идентификатор специализации
+        /// </summary>
+        /// <example>1</example>
+        public string? Specialization { get; set; }
     }
 
     /// <summary>
@@ -41,8 +48,13 @@ namespace Farola.API.Infrastructure.Queries
 
         public async Task<PaginatedResult<UserDTO>> Handle(GetProfessionalsQuerie request, CancellationToken cancellationToken)
         {
+            int? specId = null;
+            if (request.Specialization != null)
+                specId = (await _context.Specializations.FirstOrDefaultAsync(s => s.Name == request.Specialization)).Id;
             var pros = await _context.Users
-                .Where(u => u.Role == 1)
+                .Where(u => u.Role == 1 &&
+                (string.IsNullOrEmpty(request.Profession) || u.Profession.Contains(request.Profession)) &&
+                (request.Specialization == null || u.Specialization == specId))
                 .Select(p => new UserDTO
                 {
                     Id = p.Id,

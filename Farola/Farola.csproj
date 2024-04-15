@@ -17,6 +17,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Farola.Database\Farola.Database.csproj" />
     <ProjectReference Include="..\Farola.Domain\Farola.Domain.csproj" />
   </ItemGroup>
 
