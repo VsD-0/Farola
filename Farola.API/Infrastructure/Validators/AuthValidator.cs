@@ -21,7 +21,6 @@ namespace Farola.API.Infrastructure.Validators
             // Проверка логина
             RuleFor(x => x.Email)
                .NotNull()
-               .WithMessage("Это обязательное поле")
                .Must(IsExistLogin)
                .WithMessage("Пользователя с таким именем не существует");
 

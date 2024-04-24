@@ -50,7 +50,7 @@ namespace Farola.API.Infrastructure.Queries
                 Information = user.Information,
                 Profession = user.Profession,
                 Photo = user.Photo,
-                Specialization = _context.Specializations.SingleOrDefault(s => s.Id == user.Specialization).Name
+                Specialization = _context.Specializations.SingleOrDefault(s => s.Id == user.SpecializationId).Name
             };
         }
     }

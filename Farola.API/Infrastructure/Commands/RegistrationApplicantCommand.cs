@@ -84,7 +84,7 @@ namespace Farola.API.Infrastructure.Commands
                 PhoneNumber = request.Phone_number,
                 Email = request.Email,
                 Password = request.Password,
-                Role = 2,
+                RoleId = 2,
                 Area = request.Area,
                 Photo = request.Photo
             };

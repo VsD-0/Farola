@@ -28,8 +28,8 @@ namespace Farola.API.Infrastructure.Commands
         {
             Statement newStatement = new()
             {
-                Client = request.Client,
-                Professional = request.Professional,
+                ClientId = request.Client,
+                ProfessionalId = request.Professional,
                 StatusId = 1
             };
 

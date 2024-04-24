@@ -42,17 +42,22 @@ namespace Farola.API.Infrastructure.Queries
     {
         private readonly FarolaContext _context;
 
+        /// <summary>
+        /// Подключение базы данных
+        /// </summary>
+        /// <param name="context">Контекст базы данных</param>
         public GetProfessionalsHandler(FarolaContext context) => _context = context;
 
         public async Task<PaginatedResult<UserDTO>> Handle(GetProfessionalsQuerie request, CancellationToken cancellationToken)
         {
             int? specId = null;
             if (request.Specialization != null)
-                specId = (await _context.Specializations.FirstOrDefaultAsync(s => s.Name == request.Specialization)).Id;
+                specId = (await _context.Specializations.FirstOrDefaultAsync(s => s.Name == request.Specialization, cancellationToken))?.Id;
             var pros = await _context.Users
-                .Where(u => u.Role == 1 &&
-                (string.IsNullOrEmpty(request.Profession) || u.Profession.ToLower().Contains(request.Profession.ToLower())) &&
-                (request.Specialization == null || u.Specialization == specId))
+                .Where(u => u.RoleId == 1 &&
+                (request.Profession == null ||( u.Profession != null && u.Profession.Contains(request.Profession, StringComparison.CurrentCultureIgnoreCase))) &&
+                (request.Specialization == null ||
+                u.SpecializationId == specId))
                 .Select(p => new UserDTO
                 {
                     Id = p.Id,
@@ -64,9 +69,9 @@ namespace Farola.API.Infrastructure.Queries
                     PhoneNumber = p.PhoneNumber,
                     Photo = p.Photo,
                     Profession = p.Profession,
-                    Specialization = _context.Specializations.SingleOrDefault(s => s.Id == p.Specialization).Name
+                    Specialization = _context.Specializations.SingleOrDefault(s => s.Id == p.SpecializationId).Name
                 })
-                .ToListAsync();
+                .ToListAsync(cancellationToken);
 
             int totalItems = pros.Count;
 

@@ -1,20 +1,45 @@
 ﻿namespace Farola.Database.Models;
 
+/// <summary>
+/// Таблица заявлений
+/// </summary>
 public partial class Statement
 {
+    /// <summary>
+    /// Идентификатор заявления
+    /// </summary>
     public int Id { get; set; }
 
-    public int Professional { get; set; }
+    /// <summary>
+    /// Номер специалиста
+    /// </summary>
+    public int ProfessionalId { get; set; }
 
-    public int Client { get; set; }
+    /// <summary>
+    /// Номер клиента
+    /// </summary>
+    public int ClientId { get; set; }
 
+    /// <summary>
+    /// Номер статуса заявления
+    /// </summary>
     public int StatusId { get; set; }
 
+    /// <summary>
+    /// Дата создания
+    /// </summary>
     public DateTime DateAdded { get; set; }
 
-    public virtual User ClientNavigation { get; set; } = null!;
+    /// <summary>
+    /// Дата закрытия заявки
+    /// </summary>
+    public DateTime? DateExpiration { get; set; }
 
-    public virtual User ProfessionalNavigation { get; set; } = null!;
+    public virtual User Client { get; set; } = null!;
+
+    public virtual User Professional { get; set; } = null!;
+
+    public virtual ICollection<Review> Reviews { get; set; } = new List<Review>();
 
     public virtual StatementStatus Status { get; set; } = null!;
 }

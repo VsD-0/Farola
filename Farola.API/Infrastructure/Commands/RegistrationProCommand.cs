@@ -112,12 +112,12 @@ namespace Farola.API.Infrastructure.Commands
                 PhoneNumber = request.Phone_number,
                 Email = request.Email,
                 Password = request.Password,
-                Role = 1,
+                RoleId = 1,
                 Area = request.Area,
                 Photo = request.Photo,
                 Information = request.Information,
                 Profession = request.Profession,
-                Specialization = request.Specialization
+                SpecializationId = request.Specialization
             };
 
             await _context.Users.AddAsync(newUser);
@@ -133,7 +133,7 @@ namespace Farola.API.Infrastructure.Commands
                 Area = newUser.Area,
                 Photo = newUser.Photo,
                 Information = request.Information,
-                Specialization = _context.Specializations.SingleOrDefault(s => s.Id == newUser.Specialization).Name,
+                Specialization = _context.Specializations.SingleOrDefault(s => s.Id == newUser.SpecializationId).Name,
                 Profession = request.Profession
             };
         }
