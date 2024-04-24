@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-
-namespace Farola.Database.Models;
+﻿namespace Farola.Database.Models;
 
 public partial class Specialization
 {

@@ -3,9 +3,7 @@ using Farola.API.Infrastructure.Queries;
 using Farola.Database.Models;
 using Farola.Domain.Models;
 using MediatR;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using System.Net;
 
 
@@ -21,7 +19,7 @@ namespace Farola.API.Controllers
         private readonly IMediator _mediator;
         private readonly FarolaContext _context;
         public ProfessionalController(IMediator mediator, FarolaContext context)
-        { 
+        {
             _mediator = mediator;
             _context = context;
         }
@@ -34,7 +32,7 @@ namespace Farola.API.Controllers
         [HttpGet("GetSpecializations")]
         public async Task<IActionResult> GetSpecializations()
         {
-            return Ok(_context.Specializations.AsEnumerable()); 
+            return Ok(_context.Specializations.AsEnumerable());
         }
 
         /// <summary>

@@ -2,8 +2,6 @@
 using Farola.Domain.Models;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
-using System.Reflection.Metadata;
-using System.Xml.Linq;
 
 namespace Farola.API.Infrastructure.Queries
 {
@@ -53,7 +51,7 @@ namespace Farola.API.Infrastructure.Queries
                 specId = (await _context.Specializations.FirstOrDefaultAsync(s => s.Name == request.Specialization)).Id;
             var pros = await _context.Users
                 .Where(u => u.Role == 1 &&
-                (string.IsNullOrEmpty(request.Profession) || u.Profession.Contains(request.Profession)) &&
+                (string.IsNullOrEmpty(request.Profession) || u.Profession.ToLower().Contains(request.Profession.ToLower())) &&
                 (request.Specialization == null || u.Specialization == specId))
                 .Select(p => new UserDTO
                 {

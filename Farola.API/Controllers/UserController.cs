@@ -1,6 +1,5 @@
 ﻿using Farola.API.Infrastructure.Commands;
 using Farola.API.Infrastructure.Queries;
-using Farola.Database.Models;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;

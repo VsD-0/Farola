@@ -1,14 +1,13 @@
-﻿using MediatR;
-using Microsoft.AspNetCore.Mvc.ModelBinding;
+﻿using Farola.API.Infrastructure.Extensions;
+using Farola.Database.Models;
+using MediatR;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.ModelBinding;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
+using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
-using Farola.Database.Models;
-using Microsoft.EntityFrameworkCore;
-using System.IdentityModel.Tokens.Jwt;
-using Microsoft.IdentityModel.Tokens;
-using Farola.API.Infrastructure.Extensions;
-using System.Reflection.Metadata.Ecma335;
 
 namespace Farola.API.Infrastructure.Commands
 {

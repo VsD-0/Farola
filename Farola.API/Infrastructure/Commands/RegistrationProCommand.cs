@@ -1,8 +1,8 @@
 ﻿using Farola.Database.Models;
 using Farola.Domain.Models;
 using MediatR;
-using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.ModelBinding;
 
 namespace Farola.API.Infrastructure.Commands
 {
@@ -133,7 +133,7 @@ namespace Farola.API.Infrastructure.Commands
                 Area = newUser.Area,
                 Photo = newUser.Photo,
                 Information = request.Information,
-                Specialization= _context.Specializations.SingleOrDefault(s => s.Id == newUser.Specialization).Name,
+                Specialization = _context.Specializations.SingleOrDefault(s => s.Id == newUser.Specialization).Name,
                 Profession = request.Profession
             };
         }

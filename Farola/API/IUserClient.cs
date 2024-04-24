@@ -1,5 +1,4 @@
-﻿using Farola.Domain.Models;
-using Farola.ViewModels;
+﻿using Farola.ViewModels;
 using Refit;
 
 namespace Farola.API

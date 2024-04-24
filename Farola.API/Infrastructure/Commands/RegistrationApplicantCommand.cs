@@ -1,8 +1,8 @@
 ﻿using Farola.Database.Models;
-using MediatR;
-using Microsoft.AspNetCore.Mvc.ModelBinding;
-using Microsoft.AspNetCore.Mvc;
 using Farola.Domain.Models;
+using MediatR;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.ModelBinding;
 
 namespace Farola.API.Infrastructure.Commands
 {

@@ -29,7 +29,7 @@ builder.Services.AddSwaggerGen(opt =>
         Version = "v1",
         Title = "Farola API",
         Description = "API для сервиса поиска специалистов Farola",
-        Contact = new OpenApiContact 
+        Contact = new OpenApiContact
         {
             Email = "vsdmitri@gmail.com",
             Name = "Dmitry",
