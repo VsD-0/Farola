@@ -13,6 +13,8 @@ public partial class FarolaContext : DbContext
     {
     }
 
+    public virtual DbSet<Favorite> Favorites { get; set; }
+
     public virtual DbSet<Review> Reviews { get; set; }
 
     public virtual DbSet<Role> Roles { get; set; }
@@ -27,27 +29,70 @@ public partial class FarolaContext : DbContext
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        modelBuilder.Entity<Favorite>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("favorites_pkey");
+
+            entity.ToTable("favorites", tb => tb.HasComment("Таблица избранных специалистов"));
+
+            entity.Property(e => e.Id)
+                .HasComment("Идентификатор")
+                .HasColumnName("id");
+            entity.Property(e => e.ClientId)
+                .HasComment("Номер клиента")
+                .HasColumnName("client_id");
+            entity.Property(e => e.ProfessionalId)
+                .HasComment("Номер специалиста")
+                .HasColumnName("professional_id");
+
+            entity.HasOne(d => d.Client).WithMany(p => p.FavoriteClients)
+                .HasForeignKey(d => d.ClientId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("fk_favorite_client");
+
+            entity.HasOne(d => d.Professional).WithMany(p => p.FavoriteProfessionals)
+                .HasForeignKey(d => d.ProfessionalId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("fk_favorite_professional");
+        });
+
         modelBuilder.Entity<Review>(entity =>
         {
             entity.HasKey(e => e.Id).HasName("reviews_pkey");
 
-            entity.ToTable("reviews");
+            entity.ToTable("reviews", tb => tb.HasComment("Таблица отзывов клиентов"));
 
-            entity.Property(e => e.Id).HasColumnName("id");
-            entity.Property(e => e.Grade).HasColumnName("grade");
-            entity.Property(e => e.StatementId).HasColumnName("statement_id");
-            entity.Property(e => e.Text).HasColumnName("text");
+            entity.Property(e => e.Id)
+                .HasComment("Идентификатор отзыва")
+                .HasColumnName("id");
+            entity.Property(e => e.Grade)
+                .HasComment("Оценка работы")
+                .HasColumnName("grade");
+            entity.Property(e => e.StatementId)
+                .HasComment("Номер заявления")
+                .HasColumnName("statement_id");
+            entity.Property(e => e.Text)
+                .HasComment("Текст отзыва")
+                .HasColumnName("text");
+
+            entity.HasOne(d => d.Statement).WithMany(p => p.Reviews)
+                .HasForeignKey(d => d.StatementId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("fk_review_statement");
         });
 
         modelBuilder.Entity<Role>(entity =>
         {
             entity.HasKey(e => e.Id).HasName("roles_pkey");
 
-            entity.ToTable("roles");
+            entity.ToTable("roles", tb => tb.HasComment("Справочник ролей пользователей"));
 
-            entity.Property(e => e.Id).HasColumnName("id");
+            entity.Property(e => e.Id)
+                .HasComment("Идентификатор роли")
+                .HasColumnName("id");
             entity.Property(e => e.Name)
                 .HasMaxLength(20)
+                .HasComment("Наименование роли")
                 .HasColumnName("name");
         });
 
@@ -55,11 +100,14 @@ public partial class FarolaContext : DbContext
         {
             entity.HasKey(e => e.Id).HasName("specializations_pkey");
 
-            entity.ToTable("specializations");
+            entity.ToTable("specializations", tb => tb.HasComment("Справочник специализаций"));
 
-            entity.Property(e => e.Id).HasColumnName("id");
+            entity.Property(e => e.Id)
+                .HasComment("Идентификатор специализации")
+                .HasColumnName("id");
             entity.Property(e => e.Name)
-                .HasMaxLength(80)
+                .HasMaxLength(100)
+                .HasComment("Наименование специализации")
                 .HasColumnName("name");
         });
 
@@ -67,23 +115,35 @@ public partial class FarolaContext : DbContext
         {
             entity.HasKey(e => e.Id).HasName("statements_pkey");
 
-            entity.ToTable("statements");
+            entity.ToTable("statements", tb => tb.HasComment("Таблица заявлений"));
 
-            entity.Property(e => e.Id).HasColumnName("id");
-            entity.Property(e => e.Client).HasColumnName("client");
+            entity.Property(e => e.Id)
+                .HasComment("Идентификатор заявления")
+                .HasColumnName("id");
+            entity.Property(e => e.ClientId)
+                .HasComment("Номер клиента")
+                .HasColumnName("client_id");
             entity.Property(e => e.DateAdded)
                 .HasDefaultValueSql("now()")
+                .HasComment("Дата создания")
                 .HasColumnName("date_added");
-            entity.Property(e => e.Professional).HasColumnName("professional");
-            entity.Property(e => e.StatusId).HasColumnName("status_id");
+            entity.Property(e => e.DateExpiration)
+                .HasComment("Дата закрытия заявки")
+                .HasColumnName("date_expiration");
+            entity.Property(e => e.ProfessionalId)
+                .HasComment("Номер специалиста")
+                .HasColumnName("professional_id");
+            entity.Property(e => e.StatusId)
+                .HasComment("Номер статуса заявления")
+                .HasColumnName("status_id");
 
-            entity.HasOne(d => d.ClientNavigation).WithMany(p => p.StatementClientNavigations)
-                .HasForeignKey(d => d.Client)
+            entity.HasOne(d => d.Client).WithMany(p => p.StatementClients)
+                .HasForeignKey(d => d.ClientId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("fk_statement_client");
 
-            entity.HasOne(d => d.ProfessionalNavigation).WithMany(p => p.StatementProfessionalNavigations)
-                .HasForeignKey(d => d.Professional)
+            entity.HasOne(d => d.Professional).WithMany(p => p.StatementProfessionals)
+                .HasForeignKey(d => d.ProfessionalId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("fk_statement_professional");
 
@@ -97,13 +157,15 @@ public partial class FarolaContext : DbContext
         {
             entity.HasKey(e => e.Id).HasName("statement_status_pkey");
 
-            entity.ToTable("statement_statuses");
+            entity.ToTable("statement_statuses", tb => tb.HasComment("Справочник статусов заявлений"));
 
             entity.Property(e => e.Id)
                 .HasDefaultValueSql("nextval('statement_status_id_seq'::regclass)")
+                .HasComment("Идентификатор статуса заявления")
                 .HasColumnName("id");
             entity.Property(e => e.Name)
                 .HasMaxLength(40)
+                .HasComment("Наименование статуса")
                 .HasColumnName("name");
         });
 
@@ -111,48 +173,64 @@ public partial class FarolaContext : DbContext
         {
             entity.HasKey(e => e.Id).HasName("users_pkey");
 
-            entity.ToTable("users");
+            entity.ToTable("users", tb => tb.HasComment("Таблица пользователей системы"));
 
-            entity.Property(e => e.Id).HasColumnName("id");
+            entity.Property(e => e.Id)
+                .HasComment("Идентификатор пользователя")
+                .HasColumnName("id");
             entity.Property(e => e.Area)
                 .HasMaxLength(50)
+                .HasComment("Место работы")
                 .HasColumnName("area");
             entity.Property(e => e.DateRegistration)
                 .HasDefaultValueSql("now()")
-                .HasColumnType("timestamp without time zone")
+                .HasComment("Дата регистрации")
                 .HasColumnName("date_registration");
             entity.Property(e => e.Email)
                 .HasMaxLength(100)
+                .HasComment("Электронная почта")
                 .HasColumnName("email");
-            entity.Property(e => e.Information).HasColumnName("information");
+            entity.Property(e => e.Information)
+                .HasComment("Подробная информация")
+                .HasColumnName("information");
             entity.Property(e => e.Name)
                 .HasMaxLength(50)
+                .HasComment("Имя пользователя")
                 .HasColumnName("name");
             entity.Property(e => e.Password)
                 .HasMaxLength(50)
+                .HasComment("Пароль")
                 .HasColumnName("password");
             entity.Property(e => e.PhoneNumber)
-                .HasMaxLength(11)
+                .HasMaxLength(12)
+                .HasComment("Номер телефона")
                 .HasColumnName("phone_number");
             entity.Property(e => e.Photo)
                 .HasMaxLength(80)
+                .HasComment("Имя фото")
                 .HasColumnName("photo");
             entity.Property(e => e.Profession)
                 .HasMaxLength(100)
+                .HasComment("Профессия")
                 .HasColumnName("profession");
-            entity.Property(e => e.Role).HasColumnName("role");
-            entity.Property(e => e.Specialization).HasColumnName("specialization");
+            entity.Property(e => e.RoleId)
+                .HasComment("Номер роли")
+                .HasColumnName("role_id");
+            entity.Property(e => e.SpecializationId)
+                .HasComment("Номер cпециализация")
+                .HasColumnName("specialization_id");
             entity.Property(e => e.Surname)
-                .HasMaxLength(80)
+                .HasMaxLength(100)
+                .HasComment("Фамилия пользователя")
                 .HasColumnName("surname");
 
-            entity.HasOne(d => d.RoleNavigation).WithMany(p => p.Users)
-                .HasForeignKey(d => d.Role)
+            entity.HasOne(d => d.Role).WithMany(p => p.Users)
+                .HasForeignKey(d => d.RoleId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("fk_user_role");
 
-            entity.HasOne(d => d.SpecializationNavigation).WithMany(p => p.Users)
-                .HasForeignKey(d => d.Specialization)
+            entity.HasOne(d => d.Specialization).WithMany(p => p.Users)
+                .HasForeignKey(d => d.SpecializationId)
                 .HasConstraintName("fk_user_specialization");
         });
 

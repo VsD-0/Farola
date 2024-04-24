@@ -1,5 +1,4 @@
 ﻿using Farola.API.Infrastructure.Commands;
-
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 
@@ -18,10 +17,12 @@ namespace Farola.API.Controllers
         /// <param name="registrationUserCommand">Данные пользователя</param>
         /// <returns>Токен</returns>
         [HttpPost("SignUp")]
+        [ProducesResponseType(StatusCodes.Status201Created)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> SignUp([FromBody] RegistrationApplicantCommand registrationUserCommand)
         {
             var user = await _mediator.Send(registrationUserCommand);
-            return user is not null ? Created(nameof(SignUp), user) : BadRequest("Ошибка авторизации");
+            return user is not null ? Created(nameof(SignUp), user) : BadRequest(ModelState);
         }
     }
 }
