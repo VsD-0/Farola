@@ -20,26 +20,26 @@ namespace Farola.API.Infrastructure.Queries
     /// <summary>
     /// Обработчик команды получения пользователя по идентификатору.
     /// </summary>
-    public class GetUserByIdHandler : IRequestHandler<GetUserByIdQuerie, UserDTO?>
+    /// <remarks>
+    /// Подключение базы данных
+    /// </remarks>
+    /// <param name="context">Контекст базы данных.</param>
+    public class GetUserByIdHandler(FarolaContext context) : IRequestHandler<GetUserByIdQuerie, UserDTO?>
     {
-        private readonly FarolaContext _context;
+        private readonly FarolaContext _context = context;
 
         /// <summary>
-        /// Инициализирует новый экземпляр класса <see cref="GetUserByIdHandler"/>.
+        /// Обработчик
         /// </summary>
-        /// <param name="context">Контекст базы данных.</param>
-        public GetUserByIdHandler(FarolaContext context) => _context = context;
-
-        /// <summary>
-        /// Обрабатывает запрос на получение пользователя по идентификатору.
-        /// </summary>
-        /// <param name="request">Запрос на получение пользователя.</param>
-        /// <param name="cancellationToken">Токен отмены операции.</param>
+        /// <param name="request">Запрос</param>
+        /// <param name="cancellationToken">Токен отмены</param>
         /// <returns>Найденный пользователь или null, если пользователь не найден.</returns>
         public async Task<UserDTO?> Handle(GetUserByIdQuerie request, CancellationToken cancellationToken)
         {
-            var user = await _context.Users.FirstOrDefaultAsync(u => u.Id == request.Id);
-            return new UserDTO
+            var user = await _context.Users
+                .FirstOrDefaultAsync(u => u.Id == request.Id, cancellationToken);
+
+            return user != null ? new UserDTO
             {
                 Id = user.Id,
                 Surname = user.Surname,
@@ -50,8 +50,9 @@ namespace Farola.API.Infrastructure.Queries
                 Information = user.Information,
                 Profession = user.Profession,
                 Photo = user.Photo,
-                Specialization = _context.Specializations.SingleOrDefault(s => s.Id == user.SpecializationId).Name
-            };
+                Specialization = _context.Specializations
+                    .SingleOrDefault(s => s.Id == user.SpecializationId)?.Name
+            } : null;
         }
     }
 }
