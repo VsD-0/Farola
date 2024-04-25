@@ -14,7 +14,7 @@ namespace Farola.API.Infrastructure.Commands
     /// <summary>
     /// Авторизация
     /// </summary>
-    public class AuthCommand : IRequest<string>
+    public class AuthCommand : IRequest<string?>
     {
         /// <summary>
         /// Электронная почта
@@ -36,31 +36,27 @@ namespace Farola.API.Infrastructure.Commands
     /// <summary>
     /// Обработчик авторизации
     /// </summary>
-    public class AuthHandler : IRequestHandler<AuthCommand, string>
+    public class AuthHandler(IConfiguration configuration, FarolaContext context) : IRequestHandler<AuthCommand, string?>
     {
-        private readonly IConfiguration _configuration;
-        private readonly FarolaContext _context;
+        private readonly IConfiguration _configuration = configuration;
+        private readonly FarolaContext _context = context;
 
-        public AuthHandler(IConfiguration configuration, FarolaContext context)
-        {
-            _configuration = configuration;
-            _context = context;
-        }
-
+        /// <summary>
+        /// Обработчик
+        /// </summary>
+        /// <param name="request">Запрос</param>
+        /// <param name="cancellationToken">Токен отмены</param>
+        /// <exception cref="ArgumentNullException">Отсутствуют настройки jwt</exception>
+        /// <returns>Найденный пользователь или null, если пользователь не найден</returns>
         public async Task<string?> Handle(AuthCommand request, CancellationToken cancellationToken)
         {
-            // Получение пользователя по его логину
-            var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == request.Email) ?? throw new ArgumentNullException(nameof(request.Email), "Пользователь не найден");
+            var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == request.Email);
 
             if (user == null) return null;
 
-            var jwtSettings = _configuration.GetSection("JwtSettings").Get<JwtSettings>();
-
+            var jwtSettings = _configuration.GetSection("JwtSettings")?.Get<JwtSettings>() ?? throw new ArgumentNullException("jwtSettings", "Отсутствуют настройки jwt");
             var tokenHandler = new JwtSecurityTokenHandler();
-
             var secretKey = Encoding.UTF8.GetBytes(jwtSettings?.SecretKey);
-
-            // Описание токена
             var tokenDescriptor = new SecurityTokenDescriptor
             {
                 Subject = new ClaimsIdentity(new[]
@@ -73,8 +69,6 @@ namespace Farola.API.Infrastructure.Commands
                 Audience = jwtSettings.Audience,
                 SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(secretKey), SecurityAlgorithms.HmacSha256Signature)
             };
-
-            // Генерация токена
             var token = tokenHandler.CreateToken(tokenDescriptor);
 
             return tokenHandler.WriteToken(token);
