@@ -31,7 +31,7 @@ namespace Farola.API.Infrastructure.Extensions
     public static class JwtAuthenticationExtensions
     {
         /// <summary>
-        /// Настроить аутентификацию с использованием JWT токенов.
+        /// Настройка аутентификацию с использованием JWT токенов.
         /// </summary>
         /// <param name="services">Коллекция сервисов <see cref="IServiceCollection"/>.</param>
         /// <param name="jwtSettings">Настройки JWT токена.</param>

@@ -66,7 +66,7 @@ namespace Farola.API.Infrastructure.Commands
                 Subject = new ClaimsIdentity(new[]
                 {
                     new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
-                    new Claim(ClaimTypes.Role, user.Role.ToString())
+                    new Claim(ClaimTypes.Role, user.RoleId.ToString())
                 }),
                 Expires = DateTime.UtcNow.AddMinutes(15),
                 Issuer = jwtSettings.Issuer,
