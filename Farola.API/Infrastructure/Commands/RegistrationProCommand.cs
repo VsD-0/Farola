@@ -3,6 +3,7 @@ using Farola.Domain.Models;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
+using Microsoft.EntityFrameworkCore;
 
 namespace Farola.API.Infrastructure.Commands
 {
@@ -87,22 +88,20 @@ namespace Farola.API.Infrastructure.Commands
     /// <summary>
     /// Обработчик регистрации
     /// </summary>
-    public class RegistrationProHandler : IRequestHandler<RegistrationProCommand, UserDTO>
+    /// <remarks>
+    /// Инициализирует новый экземпляр класса <see cref="RegistrationProHandler"/>.
+    /// </remarks>
+    /// <param name="context">Контекст базы данных.</param>
+    public class RegistrationProHandler(FarolaContext context) : IRequestHandler<RegistrationProCommand, UserDTO>
     {
-        private readonly FarolaContext _context;
+        private readonly FarolaContext _context = context;
 
         /// <summary>
-        /// Инициализирует новый экземпляр класса <see cref="RegistrationProHandler"/>.
+        /// Обработчик
         /// </summary>
-        /// <param name="context">Контекст базы данных.</param>
-        public RegistrationProHandler(FarolaContext context) => _context = context;
-
-        /// <summary>
-        /// Обрабатывает команду авторизации и генерирует JWT-токен.
-        /// </summary>
-        /// <param name="request">Запрос на авторизацию.</param>
-        /// <param name="cancellationToken">Токен отмены операции.</param>
-        /// <returns>Сгенерированный JWT-токен.</returns>
+        /// <param name="request">Запрос</param>
+        /// <param name="cancellationToken">Токен отмены</param>
+        /// <returns>Сгенерированный JWT-токен</returns>
         public async Task<UserDTO> Handle(RegistrationProCommand request, CancellationToken cancellationToken)
         {
             User newUser = new()
@@ -120,8 +119,8 @@ namespace Farola.API.Infrastructure.Commands
                 SpecializationId = request.Specialization
             };
 
-            await _context.Users.AddAsync(newUser);
-            await _context.SaveChangesAsync();
+            await _context.Users.AddAsync(newUser, cancellationToken);
+            await _context.SaveChangesAsync(cancellationToken);
 
             return new UserDTO
             {
@@ -133,7 +132,7 @@ namespace Farola.API.Infrastructure.Commands
                 Area = newUser.Area,
                 Photo = newUser.Photo,
                 Information = request.Information,
-                Specialization = _context.Specializations.SingleOrDefault(s => s.Id == newUser.SpecializationId).Name,
+                Specialization = (await _context.Specializations.SingleOrDefaultAsync(s => s.Id == newUser.SpecializationId, cancellationToken))?.Name,
                 Profession = request.Profession
             };
         }

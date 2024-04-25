@@ -64,17 +64,18 @@ namespace Farola.API.Infrastructure.Commands
     }
 
     /// <summary>
-    /// Обработчик авторизации
+    /// Обработчик регистрации
     /// </summary>
-    public class RegistrationApplicantHandler : IRequestHandler<RegistrationApplicantCommand, UserDTO>
+    public class RegistrationApplicantHandler(FarolaContext context) : IRequestHandler<RegistrationApplicantCommand, UserDTO>
     {
-        private readonly FarolaContext _context;
+        private readonly FarolaContext _context = context;
 
-        public RegistrationApplicantHandler(FarolaContext context)
-        {
-            _context = context;
-        }
-
+        /// <summary>
+        /// Обработчик
+        /// </summary>
+        /// <param name="request">Запрос</param>
+        /// <param name="cancellationToken">Токен отмены</param>
+        /// <returns>Пользователь</returns>
         public async Task<UserDTO> Handle(RegistrationApplicantCommand request, CancellationToken cancellationToken)
         {
             User newUser = new()
@@ -89,8 +90,8 @@ namespace Farola.API.Infrastructure.Commands
                 Photo = request.Photo
             };
 
-            await _context.Users.AddAsync(newUser);
-            await _context.SaveChangesAsync();
+            await _context.Users.AddAsync(newUser, cancellationToken);
+            await _context.SaveChangesAsync(cancellationToken);
 
             return new UserDTO
             {
