@@ -38,25 +38,27 @@ namespace Farola.API.Infrastructure.Queries
     /// <summary>
     /// Обработчик команды получения профессионалов с пагинацией.
     /// </summary>
-    public class GetProfessionalsHandler : IRequestHandler<GetProfessionalsQuerie, PaginatedResult<UserDTO>>
+    /// <remarks>
+    /// Подключение базы данных
+    /// </remarks>
+    /// <param name="context">Контекст базы данных</param>
+    public class GetProfessionalsHandler(FarolaContext context) : IRequestHandler<GetProfessionalsQuerie, PaginatedResult<UserDTO>>
     {
-        private readonly FarolaContext _context;
+        private readonly FarolaContext _context = context;
 
         /// <summary>
-        /// Подключение базы данных
+        /// Обработчик
         /// </summary>
-        /// <param name="context">Контекст базы данных</param>
-        public GetProfessionalsHandler(FarolaContext context) => _context = context;
-
+        /// <param name="request">Запрос</param>
+        /// <param name="cancellationToken">Токен отмены</param>
+        /// <returns></returns>
         public async Task<PaginatedResult<UserDTO>> Handle(GetProfessionalsQuerie request, CancellationToken cancellationToken)
         {
-            int? specId = null;
-            if (request.Specialization != null)
-                specId = (await _context.Specializations.FirstOrDefaultAsync(s => s.Name == request.Specialization, cancellationToken))?.Id;
+            _ = int.TryParse(request.Specialization, out int specId);
             var pros = await _context.Users
                 .Where(u => u.RoleId == 1 &&
-                (request.Profession == null ||( u.Profession != null && u.Profession.Contains(request.Profession, StringComparison.CurrentCultureIgnoreCase))) &&
-                (request.Specialization == null ||
+                (request.Profession == null || (u.Profession != null && u.Profession.ToLower().Contains(request.Profession.ToLower()))) &&
+                ((request.Specialization == null || specId == 0) ||
                 u.SpecializationId == specId))
                 .Select(p => new UserDTO
                 {
@@ -69,21 +71,19 @@ namespace Farola.API.Infrastructure.Queries
                     PhoneNumber = p.PhoneNumber,
                     Photo = p.Photo,
                     Profession = p.Profession,
-                    Specialization = _context.Specializations.SingleOrDefault(s => s.Id == p.SpecializationId).Name
+                    Specialization = _context.Specializations
+                        .SingleOrDefault(s => s.Id == p.SpecializationId).Name
                 })
                 .ToListAsync(cancellationToken);
 
-            int totalItems = pros.Count;
-
-            int skip = (request.PageNumber - 1) * request.PageSize;
-
-            List<UserDTO> result = new(pros.Skip(skip).Take(request.PageSize));
+            var skip = (request.PageNumber - 1) * request.PageSize;
+            var result = new List<UserDTO>(pros.Skip(skip).Take(request.PageSize));
 
             var pagination = new Pagination<UserDTO>
             {
                 CurrentPage = request.PageNumber,
                 PageSize = request.PageSize,
-                TotalItems = totalItems
+                TotalItems = pros.Count
             };
 
             return new PaginatedResult<UserDTO>
