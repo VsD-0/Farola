@@ -1,4 +1,5 @@
-﻿using FluentValidation;
+﻿using Farola.API.Infrastructure.Exceptions;
+using FluentValidation;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
 using System.Net;
 

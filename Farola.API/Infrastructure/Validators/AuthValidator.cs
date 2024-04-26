@@ -5,14 +5,14 @@ using FluentValidation;
 namespace Farola.API.Infrastructure.Validators
 {
     /// <summary>
-    /// Валидатор для команды авторизации.
+    /// Валидатор для команды авторизации
     /// </summary>
     public class AuthValidator : AbstractValidator<AuthCommand>
     {
         private readonly FarolaContext _context;
 
         /// <summary>
-        /// Инициализирует новый экземпляр класса <see cref="AuthValidator"/>.
+        /// Инициализирует новый экземпляр класса <see cref="AuthValidator"/>
         /// </summary>
         public AuthValidator(FarolaContext context)
         {
@@ -21,6 +21,7 @@ namespace Farola.API.Infrastructure.Validators
             // Проверка логина
             RuleFor(x => x.Email)
                .NotNull()
+               .WithState(x => "1234")
                .Must(IsExistLogin)
                .WithMessage("Пользователя с таким именем не существует");
 

@@ -1,4 +1,5 @@
 ﻿using Farola.API.Infrastructure.Commands;
+using Farola.API.Infrastructure.Exceptions;
 using Farola.API.Infrastructure.Queries;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;

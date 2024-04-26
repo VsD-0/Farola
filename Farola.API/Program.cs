@@ -1,9 +1,11 @@
 using Farola.API.Infrastructure.Behaviors;
+using Farola.API.Infrastructure.Exceptions;
 using Farola.API.Infrastructure.Extensions;
 using Farola.API.Infrastructure.Middlewares;
 using Farola.Database.Models;
 using FluentValidation;
 using FluentValidation.AspNetCore;
+using Hellang.Middleware.ProblemDetails;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
@@ -72,6 +74,23 @@ builder.Services.AddSwaggerGen(opt =>
 var jwtSettings = builder.Configuration.GetSection("JwtSettings").Get<JwtSettings>();
 builder.Services.ConfigureJwtAuthentication(jwtSettings ?? throw new ArgumentNullException(nameof(jwtSettings), "Отсутствуют настройки jwt в конфигурации"));
 
+builder.Services.AddProblemDetails(setup =>
+{
+    setup.IncludeExceptionDetails = (ctx, env) => 
+    Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") == "Development" || 
+    Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") == "Staging";
+
+    setup.Map<CustomException>(exception => new CustomDetails
+    {
+        Title = exception.Title,
+        Detail = exception.Detail,
+        Status = StatusCodes.Status500InternalServerError,
+        Type = exception.Type,
+        Instance = exception.Instance,
+        AdditionalInfo = exception.AdditionalInfo
+    });
+});
+
 builder.Services.AddDbContext<FarolaContext>(opt =>
 {
     opt.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection"));
@@ -85,6 +104,7 @@ builder.Services.AddTransient(typeof(IPipelineBehavior<,>), typeof(ValidationBeh
 var app = builder.Build();
 
 app.UseMiddleware<ExceptionMiddleware>();
+app.UseProblemDetails();
 
 if (app.Environment.IsDevelopment())
 {
