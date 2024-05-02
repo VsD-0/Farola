@@ -1,4 +1,5 @@
-﻿using FluentValidation;
+﻿using Farola.API.Infrastructure.Exceptions;
+using FluentValidation;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
 using System.Net;
 
@@ -7,17 +8,13 @@ namespace Farola.API.Infrastructure.Middlewares
     /// <summary>
     /// Промежуточное ПО для обработки исключений.
     /// </summary>
-    public class ExceptionMiddleware
+    /// <remarks>
+    /// Инициализирует новый экземпляр класса <see cref="ExceptionMiddleware"/>.
+    /// </remarks>
+    /// <param name="next">Следующий делегат запроса.</param>
+    public class ExceptionMiddleware(RequestDelegate next)
     {
-        #region Fields
-        private readonly RequestDelegate _next;
-        #endregion Fields
-
-        /// <summary>
-        /// Инициализирует новый экземпляр класса <see cref="ExceptionMiddleware"/>.
-        /// </summary>
-        /// <param name="next">Следующий делегат запроса.</param>
-        public ExceptionMiddleware(RequestDelegate next) { _next = next; }
+        private readonly RequestDelegate _next = next;
 
         /// <summary>
         /// Выполняет обработку исключений.

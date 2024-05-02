@@ -5,14 +5,14 @@ using FluentValidation;
 namespace Farola.API.Infrastructure.Validators
 {
     /// <summary>
-    /// Валидатор для команды авторизации.
+    /// Валидатор для команды авторизации
     /// </summary>
     public class AuthValidator : AbstractValidator<AuthCommand>
     {
         private readonly FarolaContext _context;
 
         /// <summary>
-        /// Инициализирует новый экземпляр класса <see cref="AuthValidator"/>.
+        /// Инициализирует новый экземпляр класса <see cref="AuthValidator"/>
         /// </summary>
         public AuthValidator(FarolaContext context)
         {
@@ -23,16 +23,19 @@ namespace Farola.API.Infrastructure.Validators
                .NotNull()
                .WithMessage("Это обязательное поле")
                .Must(IsExistLogin)
-               .WithMessage("Пользователя с таким именем не существует");
+               .WithMessage("Пользователь не существует");
 
             // Проверка пароля
+            RuleFor(x => x.Password)
+                .NotNull()
+               .WithName("Password")
+               .WithMessage("Это обязательное поле");
+
+            // Общая проверка
             RuleFor(x => x)
-               .NotNull()
-               .WithName("Password")
-               .WithMessage("Это обязательное поле")
                .Must(IsValidPassword)
-               .WithName("Password")
-               .WithMessage("Неверный пароль");
+               .WithName("General")
+               .WithMessage("Неверный пароль или адрес эл. почты");
         }
 
         private bool IsExistLogin(string? email) => _context.Users.Any(u => u.Email == email);

@@ -1,10 +1,11 @@
 using Farola.API.Infrastructure.Behaviors;
+using Farola.API.Infrastructure.Exceptions;
 using Farola.API.Infrastructure.Extensions;
 using Farola.API.Infrastructure.Middlewares;
-using Farola.API.Infrastructure.Validators;
 using Farola.Database.Models;
 using FluentValidation;
 using FluentValidation.AspNetCore;
+using Hellang.Middleware.ProblemDetails;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
@@ -13,7 +14,9 @@ using System.Reflection;
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddMediatR(c => c.RegisterServicesFromAssemblyContaining<Program>());
+
 builder.Services.AddControllers();
+
 builder.Services.AddCors(policy =>
 {
     policy.AddPolicy("OpenCorsPolicy", opt =>
@@ -21,7 +24,9 @@ builder.Services.AddCors(policy =>
                 .AllowAnyHeader()
                 .AllowAnyMethod());
 });
+
 builder.Services.AddEndpointsApiExplorer();
+
 builder.Services.AddSwaggerGen(opt =>
 {
     opt.SwaggerDoc("v1", new OpenApiInfo
@@ -67,7 +72,24 @@ builder.Services.AddSwaggerGen(opt =>
 });
 
 var jwtSettings = builder.Configuration.GetSection("JwtSettings").Get<JwtSettings>();
-builder.Services.ConfigureJwtAuthentication(jwtSettings);
+builder.Services.ConfigureJwtAuthentication(jwtSettings ?? throw new ArgumentNullException(nameof(jwtSettings), "Отсутствуют настройки jwt в конфигурации"));
+
+builder.Services.AddProblemDetails(setup =>
+{
+    setup.IncludeExceptionDetails = (ctx, env) => 
+    Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") == "Development" || 
+    Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") == "Staging";
+
+    setup.Map<CustomException>(exception => new CustomDetails
+    {
+        Title = exception.Title,
+        Detail = exception.Detail,
+        Status = StatusCodes.Status500InternalServerError,
+        Type = exception.Type,
+        Instance = exception.Instance,
+        AdditionalInfo = exception.AdditionalInfo
+    });
+});
 
 builder.Services.AddDbContext<FarolaContext>(opt =>
 {
@@ -75,13 +97,14 @@ builder.Services.AddDbContext<FarolaContext>(opt =>
 });
 
 builder.Services.AddFluentValidationAutoValidation();
-builder.Services.AddValidatorsFromAssemblyContaining<AuthValidator>();
+builder.Services.AddValidatorsFromAssembly(Assembly.GetExecutingAssembly());
 
 builder.Services.AddTransient(typeof(IPipelineBehavior<,>), typeof(ValidationBehaviour<,>));
 
 var app = builder.Build();
 
 app.UseMiddleware<ExceptionMiddleware>();
+app.UseProblemDetails();
 
 if (app.Environment.IsDevelopment())
 {

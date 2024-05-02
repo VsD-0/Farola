@@ -18,8 +18,14 @@ else
 {
     <FluentStack Orientation="Orientation.Vertical">
         <FluentStack Orientation="Orientation.Horizontal">
-            <FluentSearch @bind-Value=prof Placeholder="Введите необходимого специалиста" Label="Профессия"/>
-                <FluentCombobox @bind-Value=spec Label="Специализация" Items="@specs" OptionText="@(s => s.Name)" OptionValue="@(s => s.Id.ToString())"/>
+            <FluentSearch @bind-Value="@profession" Placeholder="Введите необходимого специалиста" Label="Профессия" />
+            <FluentCombobox Label="Специализация"
+                            Items="@specOptions"
+                            TOption="Option<string>"
+                            OptionText="@(s => s.Text)" 
+                            OptionValue="@(s => s.Value)"
+                            OptionSelected="@(s => s.Selected)"
+                            @bind-SelectedOption = "@spec" />
             <FluentButton OnClick="Search">Найти</FluentButton>
         </FluentStack>
         @foreach (var item in pros.Items)
@@ -55,19 +61,34 @@ else
 
     private PaginatedResult<UserDTO> pros;
     private IEnumerable<Specialization> specs;
+    private List<Option<string>>? specOptions;
     private int pageNumber = 1;
-    private string? prof = null;
-    private string? spec = null;
+    private string? profession = null;
+    private Option<string>? spec = null;
 
     protected override async Task OnInitializedAsync()
     {
-        pros = await ProfessionalAPI.GetProfessionals(pageNumber, 2, prof, spec);
+        pros = await ProfessionalAPI.GetProfessionals(pageNumber, 2, profession, spec?.Value);
         specs = await ProfessionalAPI.GetSpecializations();
+
+        specOptions = specs?
+        .Select(p => new Option<string>
+        {
+            Value = p.Id.ToString(),
+            Text = p.Name
+        }).ToList();
+
+        specOptions.Insert(0, new Option<string>
+        {
+            Value = "0",
+            Text = "Показать все",
+            Selected = true
+        });
     }
 
     private async Task Search()
     {
-        pros = await ProfessionalAPI.GetProfessionals(pageNumber, 2, prof, spec);
+        pros = await ProfessionalAPI.GetProfessionals(pageNumber, 2, profession, spec?.Value);
     }
 
     private async Task Preview()
@@ -75,7 +96,7 @@ else
         if (pros.Pagination.CurrentPage > 1)
         {
             --pageNumber;
-            pros = await ProfessionalAPI.GetProfessionals(pageNumber, 2, prof, spec);
+            pros = await ProfessionalAPI.GetProfessionals(pageNumber, 2, profession, spec?.Value);
         }
     }
 
@@ -84,7 +105,7 @@ else
         if (pros.Pagination.TotalPages != pros.Pagination.CurrentPage)
         {
             ++pageNumber;
-            pros = await ProfessionalAPI.GetProfessionals(pageNumber, 2, prof, spec);
+            pros = await ProfessionalAPI.GetProfessionals(pageNumber, 2, profession, spec?.Value);
         }
     }
 }
