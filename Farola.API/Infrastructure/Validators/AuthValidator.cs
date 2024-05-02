@@ -21,18 +21,21 @@ namespace Farola.API.Infrastructure.Validators
             // Проверка логина
             RuleFor(x => x.Email)
                .NotNull()
-               .WithState(x => "1234")
+               .WithMessage("Это обязательное поле")
                .Must(IsExistLogin)
-               .WithMessage("Пользователя с таким именем не существует");
+               .WithMessage("Пользователь не существует");
 
             // Проверка пароля
+            RuleFor(x => x.Password)
+                .NotNull()
+               .WithName("Password")
+               .WithMessage("Это обязательное поле");
+
+            // Общая проверка
             RuleFor(x => x)
-               .NotNull()
-               .WithName("Password")
-               .WithMessage("Это обязательное поле")
                .Must(IsValidPassword)
-               .WithName("Password")
-               .WithMessage("Неверный пароль");
+               .WithName("General")
+               .WithMessage("Неверный пароль или адрес эл. почты");
         }
 
         private bool IsExistLogin(string? email) => _context.Users.Any(u => u.Email == email);

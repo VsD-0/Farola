@@ -10,6 +10,7 @@
 
 <FluentStack HorizontalAlignment="HorizontalAlignment.Center" VerticalAlignment="VerticalAlignment.Center">
     <FluentCard Width="400px" Height="400px">
+        <FluentLabel>@error_general</FluentLabel>
         <FluentTextField @bind-Value=email TextFieldType="TextFieldType.Email" Spellcheck="true" Placeholder="Введите эл. почту" Label="Эл. почта"/>
         <FluentLabel>@error_email</FluentLabel>
         <FluentTextField @bind-Value=password TextFieldType="TextFieldType.Password" Placeholder="Введите пароль" Label="Пароль"/>
@@ -22,6 +23,7 @@
     private string email;
     private string password;
     private string error_email;
+    private string error_general;
     private string error_password;
 
     private async void Login()
@@ -37,6 +39,7 @@
         }
         catch (ValidationApiException ex)
         {
+            error_email = error_password = error_general = "";
             var errors = ex.Content is not null ? ex.Content.Errors : new();
 
             foreach (var item in errors.Keys)
@@ -48,6 +51,9 @@
                         break;
                     case "Password":
                         error_password = errors[item].First();
+                        break;
+                    case "General":
+                        error_general = errors[item].First();
                         break;
                     default:
                         await JsRuntime.InvokeVoidAsync("alert", ex);
