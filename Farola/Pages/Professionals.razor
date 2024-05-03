@@ -62,9 +62,9 @@ else
     private PaginatedResult<UserDTO> pros;
     private IEnumerable<Specialization> specs;
     private List<Option<string>>? specOptions;
+    private Option<string>? spec = null;
     private int pageNumber = 1;
     private string? profession = null;
-    private Option<string>? spec = null;
 
     protected override async Task OnInitializedAsync()
     {

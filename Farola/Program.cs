@@ -15,6 +15,11 @@ builder.Services.AddRefitClient<IProfessionalClient>().ConfigureHttpClient(c =>
     c.BaseAddress = new Uri("https://localhost:7091/api");
 });
 
+builder.Services.AddRefitClient<IApplicantClient>().ConfigureHttpClient(c =>
+{
+    c.BaseAddress = new Uri("https://localhost:7091/api");
+});
+
 builder.Services.AddRefitClient<IUserClient>().ConfigureHttpClient(c =>
 {
     c.BaseAddress = new Uri("https://localhost:7091/api");

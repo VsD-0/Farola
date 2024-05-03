@@ -1,0 +1,53 @@
+﻿@page "/professional/signup"
+@using Farola.API
+@using Farola.Database.Models
+@using Farola.ViewModels
+@inject IProfessionalClient ProfessionalAPI
+@inject NavigationManager Navigation
+
+<h3>SignUp</h3>
+
+<FluentEditForm Model="@pro" OnSubmit="Submit">
+    <FluentTextField Id="Surname" @bind-Value=pro.Surname Placeholder="Введите фамилию" Label="Фамилия" Required/>
+    <FluentTextField Id="Name" @bind-Value=pro.Name Placeholder="Введите имя" Label="Имя" Required />
+    <FluentTextField Id="PhoneNumber" @bind-Value=pro.Phone_number TextFieldType="TextFieldType.Tel" Placeholder="Введите номер телефона" Label="Номер телефона" Required />
+    <FluentTextField Id="Email" @bind-Value=pro.Email TextFieldType="TextFieldType.Email" Spellcheck="true" Placeholder="Введите эл. почту" Label="Эл. почта" Required />
+    <FluentTextField Id="Password" @bind-Value=pro.Password TextFieldType="TextFieldType.Password" Placeholder="Введите пароль" Label="Пароль" Required />
+    <FluentTextField Id="Area" @bind-Value=pro.Area Placeholder="Введите населённый пункт" Label="Населённый пункт" />
+    <FluentCombobox Id="Specialization" Label="Специализация"
+                    Items="@specOptions"
+                    TOption="Option<string>"
+                    OptionText="@(s => s.Text)"
+                    OptionValue="@(s => s.Value)"
+                    OptionSelected="@(s => s.Selected)"
+                    @bind-SelectedOption="@spec" />
+    <FluentTextField Id="Profession" @bind-Value=pro.Profession Placeholder="Введите наименование профессии" Label="Профессия" Required />
+    <FluentTextArea Id="Information" @bind-Value=pro.Information Placeholder="Введите информацию о себе" Label="Подробная информация" />
+
+    <FluentButton Id="SubmitBtn" Type="ButtonType.Submit">Зарегистрироваться</FluentButton>
+</FluentEditForm>
+
+@code {
+    private RegProfessional pro = new();
+    private IEnumerable<Specialization>? specs;
+    private List<Option<string>>? specOptions;
+    private Option<string>? spec = null;
+
+    protected override async Task OnInitializedAsync()
+    {
+        specs = await ProfessionalAPI.GetSpecializations();
+
+        specOptions = specs?
+        .Select(p => new Option<string>
+            {
+                Value = p.Id.ToString(),
+                Text = p.Name
+            }).ToList();
+    }
+    private async Task Submit()
+    {
+        pro.Specialization = int.Parse(spec.Value);
+        await ProfessionalAPI.SignUp(pro);
+        Navigation.NavigateTo("/professional/all");
+    }
+}

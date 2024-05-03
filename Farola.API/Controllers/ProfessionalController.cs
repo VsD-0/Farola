@@ -18,6 +18,7 @@ namespace Farola.API.Controllers
     {
         private readonly IMediator _mediator;
         private readonly FarolaContext _context;
+
         public ProfessionalController(IMediator mediator, FarolaContext context)
         {
             _mediator = mediator;

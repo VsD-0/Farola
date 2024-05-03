@@ -1,5 +1,6 @@
 ﻿using Farola.Database.Models;
 using Farola.Domain.Models;
+using Farola.ViewModels;
 using Refit;
 
 namespace Farola.API
@@ -11,5 +12,8 @@ namespace Farola.API
 
         [Get("/Professional/GetSpecializations")]
         Task<IEnumerable<Specialization>> GetSpecializations();
+
+        [Post("/Professional/SignUp")]
+        Task<UserDTO> SignUp([Body] RegProfessional user);
     }
 }
