@@ -128,6 +128,7 @@ namespace Farola.API.Infrastructure.Commands
                 RoleId = newUser.RoleId,
                 Surname = newUser.Surname,
                 Name = newUser.Name,
+                Patronymic = newUser.Patronymic,
                 PhoneNumber = newUser.PhoneNumber,
                 Email = newUser.Email,
                 Area = newUser.Area,

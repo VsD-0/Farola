@@ -1,0 +1,22 @@
+﻿@page "/professional/{proId}"
+@using Farola.API
+@using Farola.Domain.Models
+@inject IProfessionalClient ProfessionalAPI
+@inject IStatementClient StatementAPI
+@inject IUserClient UserAPI
+
+<FluentStack>
+    <FluentPersona Image="@(new Icons.Filled.Size48.Person().ToDataUri(size: "40px", color: "white"))" ImageSize="80px"></FluentPersona>
+
+</FluentStack>
+
+@code {
+    [Parameter]
+    public string proId { get; set; }
+    public UserDTO? User { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        User = await ProfessionalAPI.GetProfessional(int.Parse(proId));
+    }
+}

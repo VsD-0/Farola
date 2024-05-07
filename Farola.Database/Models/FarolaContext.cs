@@ -1,4 +1,6 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using System;
+using System.Collections.Generic;
+using Microsoft.EntityFrameworkCore;
 
 namespace Farola.Database.Models;
 
@@ -201,6 +203,10 @@ public partial class FarolaContext : DbContext
                 .HasMaxLength(50)
                 .HasComment("Пароль")
                 .HasColumnName("password");
+            entity.Property(e => e.Patronymic)
+                .HasMaxLength(80)
+                .HasComment("Отчество")
+                .HasColumnName("patronymic");
             entity.Property(e => e.PhoneNumber)
                 .HasMaxLength(12)
                 .HasComment("Номер телефона")

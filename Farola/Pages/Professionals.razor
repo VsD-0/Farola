@@ -32,13 +32,13 @@
                 <FluentSearch @bind-Value="@profession" Placeholder="Введите необходимого специалиста" Label="Профессия" />
                 <FluentButton OnClick="Search">Найти</FluentButton>
             </FluentStack>
-            @foreach (var item in pros.Items)
+            @foreach (var item in pros?.Items)
             {
                 <FluentCard Height="175px">
                     <FluentStack VerticalAlignment="VerticalAlignment.Center">
                         <FluentPersona Image="@(new Icons.Filled.Size48.Person().ToDataUri(size: "40px", color: "white"))" ImageSize="80px"></FluentPersona>
-                        <FluentStack Orientation="Orientation.Vertical" VerticalGap="2"> 
-                            <FluentLabel Typo="Typography.H3">@item.Profession</FluentLabel>
+                        <FluentStack Orientation="Orientation.Vertical" VerticalGap="2">
+                            <FluentNavLink Href="@(GetProLink(item.Id))" IconColor="Color.Accent" Style="font-size: 24px; font-weight: bold">@item.Profession</FluentNavLink>
                             <FluentLabel Typo="Typography.Body">@item.Specialization</FluentLabel>
                             <FluentSpacer/>
                             <FluentLabel Typo="Typography.Body">@item.Surname @item.Name</FluentLabel>
@@ -133,6 +133,11 @@ else
             pros = await ProfessionalAPI.GetProfessionals(pageNumber, 2, profession, Specialization);
         else
             pros = await ProfessionalAPI.GetProfessionals(pageNumber, 2, profession, null);
+    }
+
+    private string GetProLink(int? proId)
+    {
+        return proId != null ? $"/professional/{proId}" : "#";
     }
 
     private async Task Search()

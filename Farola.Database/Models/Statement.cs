@@ -1,4 +1,7 @@
-﻿namespace Farola.Database.Models;
+﻿using System;
+using System.Collections.Generic;
+
+namespace Farola.Database.Models;
 
 /// <summary>
 /// Таблица заявлений

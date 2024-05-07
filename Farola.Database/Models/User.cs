@@ -1,4 +1,7 @@
-﻿namespace Farola.Database.Models;
+﻿using System;
+using System.Collections.Generic;
+
+namespace Farola.Database.Models;
 
 /// <summary>
 /// Таблица пользователей системы
@@ -69,6 +72,11 @@ public partial class User
     /// Профессия
     /// </summary>
     public string? Profession { get; set; }
+
+    /// <summary>
+    /// Отчество
+    /// </summary>
+    public string? Patronymic { get; set; }
 
     public virtual ICollection<Favorite> FavoriteClients { get; set; } = new List<Favorite>();
 

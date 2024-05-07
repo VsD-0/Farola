@@ -23,6 +23,11 @@
         public string Name { get; set; } = null!;
 
         /// <summary>
+        /// Отчество
+        /// </summary>
+        public string? Patronymic { get; set; }
+
+        /// <summary>
         /// Номер телефона
         /// </summary>
         public string PhoneNumber { get; set; } = null!;

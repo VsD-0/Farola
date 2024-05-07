@@ -4,6 +4,7 @@ using Farola.Database.Models;
 using Farola.Domain.Models;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using System.Net;
 
 
@@ -24,10 +25,33 @@ namespace Farola.API.Controllers
             _mediator = mediator;
             _context = context;
         }
+
         [HttpGet("GetProfessionals")]
         public async Task<IActionResult> GetProfessionals(int pageNumber, int pageSize, string? profession, string? specialization)
         {
             return Ok(await _mediator.Send(new GetProfessionalsQuerie { PageNumber = pageNumber, PageSize = pageSize, Profession = profession, Specialization = specialization }));
+        }
+
+        [HttpGet("GetProfessional")] 
+        public async Task<IActionResult> GetProfessional(int id)
+        {
+            return Ok(await _context.Users.Where(u => u.Id == id)
+                .Select(u => new UserDTO
+                {
+                    Id = u.Id,
+                    Name = u.Name,
+                    Area = u.Area,
+                    Email = u.Email,
+                    Information = u.Information,
+                    PhoneNumber = u.PhoneNumber,
+                    Photo = u.Photo,
+                    Profession = u.Profession,
+                    RoleId = u.RoleId,
+                    Surname = u.Surname,
+                    Patronymic = u.Patronymic,
+                    Specialization = _context.Specializations.FirstOrDefault(s => s.Id == u.SpecializationId)!.Name
+                })
+                .FirstOrDefaultAsync());
         }
 
         [HttpGet("GetSpecializations")]
