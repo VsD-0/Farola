@@ -36,6 +36,20 @@ namespace Farola.API.Controllers
             return Ok(_context.Specializations.AsEnumerable());
         }
 
+        [HttpGet("GetSpecStats")]
+        public async Task<IActionResult> GetSpecStats()
+        {
+            return Ok(_context.Users
+                .Join(_context.Specializations,
+                    u => u.SpecializationId,
+                    sp => sp.Id,
+                    (u, sp) => new { User = u, Spec = sp })
+                .Where(x => x.User.RoleId == 1)
+                .GroupBy(x => x.Spec.Name)
+                .Select(g => new SpecStat { Name = g.Key, Count = g.Count()})
+                .AsEnumerable());
+        }
+
         /// <summary>
         /// Регистрация профессионала
         /// </summary>

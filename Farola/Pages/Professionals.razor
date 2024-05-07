@@ -1,58 +1,68 @@
-﻿@page "/professional/all"
+﻿@page "/professional/{specialization}/{search}"
 @using Farola.API
 @using Farola.Database.Models
 @using Farola.Domain.Models
+@using Farola.Infrastructure.Handlers
+@using System.IdentityModel.Tokens.Jwt
 @inject HttpClient Http
 @inject IProfessionalClient ProfessionalAPI
+@inject IStatementClient StatementAPI
 
 <PageTitle>Специалисты</PageTitle>
 
 <FluentStack Orientation="Orientation.Vertical">
 <h1>Специалисты</h1>
 
-@if (pros == null)
+@if (pros != null)
 {
-    <p><em>Loading...</em></p>
-}
+    @if (pros?.Items?.Count == 0)
+    {
+        <FluentStack Orientation="Orientation.Vertical">
+            <FluentStack Orientation="Orientation.Horizontal">
+                <FluentSearch @bind-Value="@profession" Placeholder="Введите необходимого специалиста" Label="Профессия" />
+                <FluentButton OnClick="Search">Найти</FluentButton>
+            </FluentStack>
+        <p><em>Специалисты отсутствуют</em></p>
+        </FluentStack>
+    }
+    else
+    {
+        <FluentStack Orientation="Orientation.Vertical">
+            <FluentStack Orientation="Orientation.Horizontal">
+                <FluentSearch @bind-Value="@profession" Placeholder="Введите необходимого специалиста" Label="Профессия" />
+                <FluentButton OnClick="Search">Найти</FluentButton>
+            </FluentStack>
+            @foreach (var item in pros.Items)
+            {
+                <FluentCard Height="175px">
+                    <FluentStack VerticalAlignment="VerticalAlignment.Center">
+                        <FluentPersona Image="@(new Icons.Filled.Size48.Person().ToDataUri(size: "40px", color: "white"))" ImageSize="80px"></FluentPersona>
+                        <FluentStack Orientation="Orientation.Vertical" VerticalGap="2"> 
+                            <FluentLabel Typo="Typography.H3">@item.Profession</FluentLabel>
+                            <FluentLabel Typo="Typography.Body">@item.Specialization</FluentLabel>
+                            <FluentSpacer/>
+                            <FluentLabel Typo="Typography.Body">@item.Surname @item.Name</FluentLabel>
+                            <FluentLabel Typo="Typography.Body">@item.Email</FluentLabel>
+                            <FluentSpacer />
+                            <FluentLabel Typo="Typography.Body">@item.Area</FluentLabel>
+                        </FluentStack>
+                        <FluentLabel Typo="Typography.Body">@item.Information</FluentLabel>
+                        @* <FluentButton OnClick="@(p => SendStatement(item.Id))">Подать заявку</FluentButton> *@
+                    </FluentStack>
+                </FluentCard>
+            }
+        </FluentStack>
+
+        <FluentStack Orientation="Orientation.Horizontal">
+            <FluentButton OnClick="Preview">Назад</FluentButton>
+            <FluentLabel>@pros.Pagination.CurrentPage</FluentLabel>
+            <FluentButton OnClick="Next">Вперёд</FluentButton>
+        </FluentStack>   
+        }
+    }
 else
 {
-    <FluentStack Orientation="Orientation.Vertical">
-        <FluentStack Orientation="Orientation.Horizontal">
-            <FluentSearch @bind-Value="@profession" Placeholder="Введите необходимого специалиста" Label="Профессия" />
-            <FluentCombobox Label="Специализация"
-                            Items="@specOptions"
-                            TOption="Option<string>"
-                            OptionText="@(s => s.Text)" 
-                            OptionValue="@(s => s.Value)"
-                            OptionSelected="@(s => s.Selected)"
-                            @bind-SelectedOption = "@spec" />
-            <FluentButton OnClick="Search">Найти</FluentButton>
-        </FluentStack>
-        @foreach (var item in pros.Items)
-        {
-            <FluentCard Height="175px">
-                <FluentStack VerticalAlignment="VerticalAlignment.Center">
-                    <FluentPersona Image="@(new Icons.Filled.Size48.Person().ToDataUri(size: "40px", color: "white"))" ImageSize="80px"></FluentPersona>
-                    <FluentStack Orientation="Orientation.Vertical" VerticalGap="2"> 
-                        <FluentLabel Typo="Typography.H3">@item.Profession</FluentLabel>
-                        <FluentLabel Typo="Typography.Body">@item.Specialization</FluentLabel>
-                        <FluentSpacer/>
-                        <FluentLabel Typo="Typography.Body">@item.Surname @item.Name</FluentLabel>
-                        <FluentLabel Typo="Typography.Body">@item.Email</FluentLabel>
-                        <FluentSpacer />
-                        <FluentLabel Typo="Typography.Body">@item.Area</FluentLabel>
-                    </FluentStack>
-                    <FluentLabel Typo="Typography.Body">@item.Information</FluentLabel>
-                </FluentStack>
-            </FluentCard>
-        }
-    </FluentStack>
-
-    <FluentStack Orientation="Orientation.Horizontal">
-        <FluentButton OnClick="Preview">Назад</FluentButton>
-        <FluentLabel>@pros.Pagination.CurrentPage</FluentLabel>
-        <FluentButton OnClick="Next">Вперёд</FluentButton>
-    </FluentStack>   
+    <FluentProgressRing />
 }
 </FluentStack>
 
@@ -65,10 +75,38 @@ else
     private Option<string>? spec = null;
     private int pageNumber = 1;
     private string? profession = null;
+    private string? role = "2";
+    private string? clientId = "0";
+
+
+    [Parameter]
+    public string search { get; set; }
+    [Parameter]
+    public string Specialization { get; set; }
 
     protected override async Task OnInitializedAsync()
     {
-        pros = await ProfessionalAPI.GetProfessionals(pageNumber, 2, profession, spec?.Value);
+        if (search != "search")
+            profession = search;
+        if (Specialization != "all")
+            pros = await ProfessionalAPI.GetProfessionals(pageNumber, 2, profession, Specialization);
+        else
+            pros = await ProfessionalAPI.GetProfessionals(pageNumber, 2, profession, null);
+        // if (TokenStorage.Token is not null)
+        // {
+        //     var tokenHandler = new JwtSecurityTokenHandler();
+
+        //     // Получение токена
+        //     var jwtToken = tokenHandler.ReadJwtToken(TokenStorage.Token);
+
+        //     // Получение роли из токена
+        //     var roleClaim = jwtToken.Claims.FirstOrDefault(claim => claim.Type == "role");
+        //     role = roleClaim is not null ? roleClaim.Value : "2";
+
+        //     var idClaim = jwtToken.Claims.FirstOrDefault(claim => claim.Type == "nameidentifier");
+        //     clientId = idClaim is not null ? idClaim.Value : "0";
+        // }
+
         specs = await ProfessionalAPI.GetSpecializations();
 
         specOptions = specs?
@@ -86,9 +124,20 @@ else
         });
     }
 
+    protected override async Task OnParametersSetAsync()
+    {
+        if (search != "search")
+            profession = search;
+
+        if (Specialization != "all")
+            pros = await ProfessionalAPI.GetProfessionals(pageNumber, 2, profession, Specialization);
+        else
+            pros = await ProfessionalAPI.GetProfessionals(pageNumber, 2, profession, null);
+    }
+
     private async Task Search()
     {
-        pros = await ProfessionalAPI.GetProfessionals(pageNumber, 2, profession, spec?.Value);
+        pros = await ProfessionalAPI.GetProfessionals(pageNumber, 2, profession, Specialization);
     }
 
     private async Task Preview()
@@ -108,4 +157,9 @@ else
             pros = await ProfessionalAPI.GetProfessionals(pageNumber, 2, profession, spec?.Value);
         }
     }
+
+    // private async Task SendStatement(int proId)
+    // {
+    //     await StatementAPI.SendStatement(new ViewModels.SendStatement{ ClientId = int.Parse(clientId), ProfessionalId = proId});
+    // }
 }

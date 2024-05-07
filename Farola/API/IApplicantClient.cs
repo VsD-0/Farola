@@ -1,12 +1,13 @@
 ﻿using Farola.Database.Models;
 using Farola.Domain.Models;
+using Farola.ViewModels;
 using Refit;
 
 namespace Farola.API
 {
     public interface IApplicantClient
     {
-        [Get("/Applicant/SignUp")]
-        Task<UserDTO> SignUp([Body] User user);
+        [Post("/Applicant/SignUp")]
+        Task<UserDTO> SignUp([Body] RegApplicant user);
     }
 }

@@ -1,7 +1,45 @@
 ﻿@page "/"
+@using Farola.API
+@using Farola.Domain.Models
+@inject IProfessionalClient ProfessionalAPI
+@inject NavigationManager Navigation
 
-<h3>Профиль</h3>
+<FluentStack HorizontalAlignment="HorizontalAlignment.Center" Orientation="Orientation.Vertical">
+    <h1>Farola</h1>
+    <h4>Сервис поиска специалистов</h4>
+</FluentStack>
+<FluentStack>
+    <FluentSearch @bind-Value="@search" Placeholder="Введите необходимого специалиста" Label="Профессия" />
+    <FluentButton OnClick="Search">Найти</FluentButton>
+</FluentStack>
+<FluentStack>
+    @if (specstats != null)
+    {
+        <FluentDataGrid Items="@specstats">
+            <PropertyColumn Property="@(p => p.Name)" Sortable="true" />
+            <PropertyColumn Property="@(p => p.Count)" Sortable="true" />
+        </FluentDataGrid>
+    }
+    else
+    {
+        <FluentProgressRing />
+    }
+
+</FluentStack>
+
 
 @code {
+    private string? search;
+    private IQueryable<SpecStat> specstats;
+
+    protected override async Task OnInitializedAsync()
+    {
+        specstats = (await ProfessionalAPI.GetSpecStats()).AsQueryable<SpecStat>();
+    }
+
+    private async void Search()
+    {
+        Navigation.NavigateTo($"/professional/all/{search}");
+    }
 
 }

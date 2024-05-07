@@ -13,6 +13,9 @@ namespace Farola.API
         [Get("/Professional/GetSpecializations")]
         Task<IEnumerable<Specialization>> GetSpecializations();
 
+        [Get("/Professional/GetSpecStats")]
+        Task<IEnumerable<SpecStat>> GetSpecStats();
+
         [Post("/Professional/SignUp")]
         Task<UserDTO> SignUp([Body] RegProfessional user);
     }

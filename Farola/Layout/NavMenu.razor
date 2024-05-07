@@ -1,8 +1,59 @@
-﻿@* To get access to all Fluent UI System icons, install the Microsoft.FluentUI.AspNetCore.Compoents.Icon package *@
+﻿@using Farola.API
+@using Farola.Database.Models
+@inject IProfessionalClient ProfessionalAPI
+@inject NavigationManager Navigation
+@* To get access to all Fluent UI System icons, install the Microsoft.FluentUI.AspNetCore.Compoents.Icon package *@
 @* See all the diffeent ways on how to use icons at https://www.fluentui-blazor.net/Icon *@
+
 <nav>
     <FluentNavMenu Width="250" Collapsible="true" Title="Custom navigation menu">
         <FluentNavLink Href="/" Match="NavLinkMatch.All" Icon="@Icon.FromImageUrl("/images/home.svg")" IconColor="Color.Accent">Home</FluentNavLink>
-        <FluentNavLink Href="/professional/all" IconColor="Color.Accent">Специалисты</FluentNavLink>
+        <FluentNavLink Href="/professional/all/search" IconColor="Color.Accent">Специалисты</FluentNavLink>
+        @if (specs != null)
+        {
+            <FluentListbox TOption="Specialization"
+            Label="Специализации"
+            Items="@specs"
+            Id="spec-listbox"
+            Height="150px"
+            Multiple=false
+            OptionValue="@(s => s.Id.ToString())"
+            OptionText="@(s => s.Name)"
+            @bind-Value="@SelectedValue"
+            @bind-SelectedOption="@SelectedItem"/>
+        }
+        else
+        {
+            <FluentProgressRing />
+        }
     </FluentNavMenu>
 </nav>
+
+@code{
+    private List<Specialization> specs;
+    private string selectedValue;
+    private string SelectedValue 
+    {
+        get
+        {
+            return selectedValue;
+        }
+        set
+        {
+            selectedValue = value;
+            Navigation.NavigateTo($"/professional/{selectedValue}/search");
+        }
+
+    }
+    private Specialization SelectedItem {get; set;}
+
+    protected override async Task OnInitializedAsync()
+    {
+        specs = (await ProfessionalAPI.GetSpecializations()).ToList();
+    }
+
+    private void FindBySpec()
+    {
+        Navigation.NavigateTo($"/professional/{SelectedValue}/search");
+    }
+}

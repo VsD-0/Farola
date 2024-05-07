@@ -8,7 +8,7 @@ namespace Farola.API.Infrastructure.Queries
     /// <summary>
     /// Получения пользователя по его Id
     /// </summary>
-    public class GetUserByIdQuerie : IRequest<UserDTO>
+    public class GetUserByIdQuerie : IRequest<User>
     {
         /// <summary>
         /// Id документа
@@ -24,7 +24,7 @@ namespace Farola.API.Infrastructure.Queries
     /// Подключение базы данных
     /// </remarks>
     /// <param name="context">Контекст базы данных.</param>
-    public class GetUserByIdHandler(FarolaContext context) : IRequestHandler<GetUserByIdQuerie, UserDTO?>
+    public class GetUserByIdHandler(FarolaContext context) : IRequestHandler<GetUserByIdQuerie, User?>
     {
         private readonly FarolaContext _context = context;
 
@@ -34,25 +34,12 @@ namespace Farola.API.Infrastructure.Queries
         /// <param name="request">Запрос</param>
         /// <param name="cancellationToken">Токен отмены</param>
         /// <returns>Найденный пользователь или null, если пользователь не найден.</returns>
-        public async Task<UserDTO?> Handle(GetUserByIdQuerie request, CancellationToken cancellationToken)
+        public async Task<User?> Handle(GetUserByIdQuerie request, CancellationToken cancellationToken)
         {
             var user = await _context.Users
                 .FirstOrDefaultAsync(u => u.Id == request.Id, cancellationToken);
 
-            return user != null ? new UserDTO
-            {
-                Id = user.Id,
-                Surname = user.Surname,
-                Name = user.Name,
-                Email = user.Email,
-                PhoneNumber = user.PhoneNumber,
-                Area = user.Area,
-                Information = user.Information,
-                Profession = user.Profession,
-                Photo = user.Photo,
-                Specialization = _context.Specializations
-                    .SingleOrDefault(s => s.Id == user.SpecializationId)?.Name
-            } : null;
+            return user;
         }
     }
 }

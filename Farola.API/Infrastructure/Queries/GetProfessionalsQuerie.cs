@@ -63,6 +63,7 @@ namespace Farola.API.Infrastructure.Queries
                 .Select(p => new UserDTO
                 {
                     Id = p.Id,
+                    RoleId = p.RoleId,
                     Surname = p.Surname,
                     Name = p.Name,
                     Area = p.Area,
