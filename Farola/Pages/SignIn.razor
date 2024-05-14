@@ -1,6 +1,7 @@
 ﻿@page "/user/signin"
 @using Farola.API
 @using Farola.Domain.Models
+@using Farola.Infrastructure.Handlers
 @using Farola.ViewModels
 @using Refit
 
@@ -31,11 +32,12 @@
     {
         try
         {
-            await UserAPI.SignIn(new AuthModel
+            string token = await UserAPI.SignIn(new AuthModel
             {
                 Email = email,
                 Password = password
             });
+            TokenStorage.Token = token;
             Navigation.NavigateTo("/professional/all/search");
         }
         catch (ValidationApiException ex)

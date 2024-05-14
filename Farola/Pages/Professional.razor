@@ -2,10 +2,14 @@
 @using Farola.API
 @using Farola.Database.Models
 @using Farola.Domain.Models
+@using Farola.Infrastructure.Handlers
+@using System.IdentityModel.Tokens.Jwt
 @inject IProfessionalClient ProfessionalAPI
 @inject IStatementClient StatementAPI
 @inject IUserClient UserAPI
+@inject IJSRuntime JSRuntime
 
+<a onclick="history.back();">&lt; Вернуться к списку</a>
 @if (User != null)
 {
     <PageTitle>@User.Surname @User.Name @User.Patronymic</PageTitle>
@@ -18,6 +22,10 @@
                 <FluentLabel>@User.Surname @User.Name @User.Patronymic</FluentLabel>
                 <FluentLabel>Рейтинг: @(Rating ?? "Отсутствует")</FluentLabel>
                 <FluentLabel>Количество оценок: @(Reviews.Count() == 0 ? "0" : Reviews.Count())</FluentLabel>
+                @if (TokenStorage.Token is not null && role == "2")
+                {
+                    <FluentButton Disabled=@existStatement OnClick="@(p => SendStatement())">Подать заявку</FluentButton>
+                }
             </FluentStack>
             <FluentStack Orientation="Orientation.Vertical">
                 <FluentLabel>@User.Information</FluentLabel>
@@ -63,6 +71,10 @@ else
     public string? Rating { get; set; }
     public List<Review> Reviews { get; set; }
 
+    private string? role = "2";
+    private string? clientId = "0";
+    private bool existStatement;
+
     protected override async Task OnInitializedAsync()
     {
         User = await ProfessionalAPI.GetProfessional(int.Parse(proId));
@@ -79,5 +91,33 @@ else
                 Rating = (totalGrade / Reviews.Count).ToString();
             }
         }
+
+        if (TokenStorage.Token is not null)
+        {
+            var tokenHandler = new JwtSecurityTokenHandler();
+
+            // Получение токена
+            var jwtToken = tokenHandler.ReadJwtToken(TokenStorage.Token);
+
+            // Получение роли из токена
+            var roleClaim = jwtToken.Claims.FirstOrDefault(claim => claim.Type == "role");
+            role = roleClaim is not null ? roleClaim.Value : "2";
+
+            var idClaim = jwtToken.Claims.FirstOrDefault(claim => claim.Type == "nameid");
+            clientId = idClaim is not null ? idClaim.Value : "0";
+
+            existStatement = await StatementAPI.IsExistActive(int.Parse(clientId), User.Id);
+        }
+    }
+
+    private async Task GoBack()
+    {
+        await JSRuntime.InvokeVoidAsync("history.back");
+    }
+
+    private async Task SendStatement()
+    {
+        await StatementAPI.SendStatement(new ViewModels.SendStatement { ClientId = int.Parse(clientId), ProfessionalId = User.Id  });
+        existStatement = true;
     }
 }

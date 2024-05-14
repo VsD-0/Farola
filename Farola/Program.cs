@@ -13,25 +13,51 @@ builder.RootComponents.Add<HeadOutlet>("head::after");
 
 //builder.Services.AddTransient<TokenHandler>();
 
-builder.Services.AddRefitClient<IProfessionalClient>().ConfigureHttpClient(c =>
-{
-    c.BaseAddress = new Uri("https://localhost:7091/api");
-});//.AddHttpMessageHandler<TokenHandler>();
+builder.Services.AddTransient<TokenHandler>();
 
-builder.Services.AddRefitClient<IApplicantClient>().ConfigureHttpClient(c =>
+Action<HttpClient> refitHttp = c =>
 {
     c.BaseAddress = new Uri("https://localhost:7091/api");
-});//.AddHttpMessageHandler<TokenHandler>();
+};
 
-builder.Services.AddRefitClient<IUserClient>().ConfigureHttpClient(c =>
-{
-    c.BaseAddress = new Uri("https://localhost:7091/api");
-});//.AddHttpMessageHandler<TokenHandler>();
+builder.Services
+   .AddRefitClient<IProfessionalClient>()
+   .AddHttpMessageHandler<TokenHandler>()
+   .ConfigureHttpClient(refitHttp);
 
-builder.Services.AddRefitClient<IStatementClient>().ConfigureHttpClient(c =>
-{
-    c.BaseAddress = new Uri("https://localhost:7091/api");
-});//.AddHttpMessageHandler<TokenHandler>();
+builder.Services
+    .AddRefitClient<IApplicantClient>()
+    .AddHttpMessageHandler<TokenHandler>()
+    .ConfigureHttpClient(refitHttp);
+
+builder.Services
+   .AddRefitClient<IUserClient>()
+   .ConfigureHttpClient(refitHttp);
+
+builder.Services
+    .AddRefitClient<IStatementClient>()
+    .AddHttpMessageHandler<TokenHandler>()
+    .ConfigureHttpClient(refitHttp);
+
+//builder.Services.AddRefitClient<IProfessionalClient>().ConfigureHttpClient(c =>
+//{
+//    c.BaseAddress = new Uri("https://localhost:7091/api");
+//}).AddHttpMessageHandler<TokenHandler>();
+
+//builder.Services.AddRefitClient<IApplicantClient>().ConfigureHttpClient(c =>
+//{
+//    c.BaseAddress = new Uri("https://localhost:7091/api");
+//});
+
+//builder.Services.AddRefitClient<IUserClient>().ConfigureHttpClient(c =>
+//{
+//    c.BaseAddress = new Uri("https://localhost:7091/api");
+//});
+
+//builder.Services.AddRefitClient<IStatementClient>().ConfigureHttpClient(c =>
+//{
+//    c.BaseAddress = new Uri("https://localhost:7091/api");
+//});
 
 builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(builder.HostEnvironment.BaseAddress) });
 builder.Services.AddFluentUIComponents();

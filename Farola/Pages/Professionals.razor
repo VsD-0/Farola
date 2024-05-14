@@ -4,6 +4,7 @@
 @using Farola.Domain.Models
 @using Farola.Infrastructure.Handlers
 @using System.IdentityModel.Tokens.Jwt
+@using System.Security.Claims
 @inject HttpClient Http
 @inject IProfessionalClient ProfessionalAPI
 @inject IStatementClient StatementAPI
@@ -47,7 +48,6 @@
                             <FluentLabel Typo="Typography.Body">@item.Area</FluentLabel>
                         </FluentStack>
                         <FluentLabel Typo="Typography.Body">@item.Information</FluentLabel>
-                        @* <FluentButton OnClick="@(p => SendStatement(item.Id))">Подать заявку</FluentButton> *@
                     </FluentStack>
                 </FluentCard>
             }
@@ -75,8 +75,7 @@ else
     private Option<string>? spec = null;
     private int pageNumber = 1;
     private string? profession = null;
-    private string? role = "2";
-    private string? clientId = "0";
+
 
 
     [Parameter]
@@ -92,20 +91,6 @@ else
             pros = await ProfessionalAPI.GetProfessionals(pageNumber, 2, profession, Specialization);
         else
             pros = await ProfessionalAPI.GetProfessionals(pageNumber, 2, profession, null);
-        // if (TokenStorage.Token is not null)
-        // {
-        //     var tokenHandler = new JwtSecurityTokenHandler();
-
-        //     // Получение токена
-        //     var jwtToken = tokenHandler.ReadJwtToken(TokenStorage.Token);
-
-        //     // Получение роли из токена
-        //     var roleClaim = jwtToken.Claims.FirstOrDefault(claim => claim.Type == "role");
-        //     role = roleClaim is not null ? roleClaim.Value : "2";
-
-        //     var idClaim = jwtToken.Claims.FirstOrDefault(claim => claim.Type == "nameidentifier");
-        //     clientId = idClaim is not null ? idClaim.Value : "0";
-        // }
 
         specs = await ProfessionalAPI.GetSpecializations();
 
@@ -162,9 +147,4 @@ else
             pros = await ProfessionalAPI.GetProfessionals(pageNumber, 2, profession, spec?.Value);
         }
     }
-
-    // private async Task SendStatement(int proId)
-    // {
-    //     await StatementAPI.SendStatement(new ViewModels.SendStatement{ ClientId = int.Parse(clientId), ProfessionalId = proId});
-    // }
 }

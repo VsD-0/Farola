@@ -8,5 +8,8 @@ namespace Farola.API
     {
         [Post("/Statement/Send")]
         Task<Statement> SendStatement(SendStatement request);
+
+        [Get("/Statement/IsExistActive/{id}/{proId}")]
+        Task<bool> IsExistActive(int id, int proId);
     }
 }
