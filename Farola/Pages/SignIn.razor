@@ -8,7 +8,8 @@
 @inject IJSRuntime JsRuntime
 @inject NavigationManager Navigation
 
-<FluentStack HorizontalAlignment="HorizontalAlignment.Center" VerticalAlignment="VerticalAlignment.Center">
+<FluentStack HorizontalAlignment="HorizontalAlignment.Center" VerticalAlignment="VerticalAlignment.Center" Orientation="Orientation.Vertical">
+    <FluentLabel Typo="Typography.H2">Авторизация</FluentLabel>
     <FluentCard Width="400px" Height="400px">
         <FluentLabel>@error_general</FluentLabel>
         <FluentTextField @bind-Value=email TextFieldType="TextFieldType.Email" Spellcheck="true" Placeholder="Введите эл. почту" Label="Эл. почта"/>

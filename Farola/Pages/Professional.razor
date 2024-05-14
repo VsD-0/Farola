@@ -1,22 +1,83 @@
 ﻿@page "/professional/{proId}"
 @using Farola.API
+@using Farola.Database.Models
 @using Farola.Domain.Models
 @inject IProfessionalClient ProfessionalAPI
 @inject IStatementClient StatementAPI
 @inject IUserClient UserAPI
 
-<FluentStack>
-    <FluentPersona Image="@(new Icons.Filled.Size48.Person().ToDataUri(size: "40px", color: "white"))" ImageSize="80px"></FluentPersona>
-
-</FluentStack>
+@if (User != null)
+{
+    <PageTitle>@User.Surname @User.Name @User.Patronymic</PageTitle>
+    <FluentStack Orientation="Orientation.Vertical">
+        <FluentLabel Typo="Typography.H2">@User.Profession</FluentLabel>
+        <FluentLabel Typo="Typography.H4">@User.Specialization</FluentLabel>
+        <FluentStack Orientation="Orientation.Vertical">
+            <FluentPersona Image="@(new Icons.Filled.Size48.Person().ToDataUri(size: "40px", color: "white"))" ImageSize="80px"></FluentPersona>
+            <FluentStack Orientation="Orientation.Vertical">
+                <FluentLabel>@User.Surname @User.Name @User.Patronymic</FluentLabel>
+                <FluentLabel>Рейтинг: @(Rating ?? "Отсутствует")</FluentLabel>
+                <FluentLabel>Количество оценок: @(Reviews.Count() == 0 ? "0" : Reviews.Count())</FluentLabel>
+            </FluentStack>
+            <FluentStack Orientation="Orientation.Vertical">
+                <FluentLabel>@User.Information</FluentLabel>
+            </FluentStack>
+            <FluentStack Orientation="Orientation.Vertical">
+                <FluentLabel>Отзывы:</FluentLabel>
+                @if (Reviews != null)
+                {
+                    if (Reviews.Count() != 0)
+                    {
+                        foreach (var item in Reviews)
+                        {
+                            <FluentCard>
+                                <FluentLabel>@item.Grade</FluentLabel>
+                                <FluentLabel>@item.Text</FluentLabel>
+                            </FluentCard>
+                        }
+                    }
+                    else
+                    {
+                        <FluentLabel>Отзывы отсутствуют</FluentLabel> 
+                    }
+                }
+                else
+                {
+                    <FluentProgressRing/>
+                }
+            </FluentStack>
+        </FluentStack>
+    </FluentStack>
+}
+else
+{
+    <PageTitle>Пользователь не найден</PageTitle>
+    <FluentLabel>Пользователь не найден</FluentLabel>
+}
 
 @code {
     [Parameter]
     public string proId { get; set; }
+
     public UserDTO? User { get; set; }
+    public string? Rating { get; set; }
+    public List<Review> Reviews { get; set; }
 
     protected override async Task OnInitializedAsync()
     {
         User = await ProfessionalAPI.GetProfessional(int.Parse(proId));
+        if (User != null)
+        {
+            Reviews = (await ProfessionalAPI.GetReviewsByUser(User.Id)).ToList();
+            if (Reviews.Any())
+            {
+                float totalGrade = 0;
+                foreach (var review in Reviews)
+                {
+                    totalGrade += review.Grade;
+                }
+                Rating = (totalGrade / Reviews.Count).ToString();
+            }
+        }
     }
 }

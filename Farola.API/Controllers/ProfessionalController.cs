@@ -32,7 +32,7 @@ namespace Farola.API.Controllers
             return Ok(await _mediator.Send(new GetProfessionalsQuerie { PageNumber = pageNumber, PageSize = pageSize, Profession = profession, Specialization = specialization }));
         }
 
-        [HttpGet("GetProfessional")] 
+        [HttpGet("GetProfessional/{id}")] 
         public async Task<IActionResult> GetProfessional(int id)
         {
             return Ok(await _context.Users.Where(u => u.Id == id)
@@ -58,6 +58,19 @@ namespace Farola.API.Controllers
         public async Task<IActionResult> GetSpecializations()
         {
             return Ok(_context.Specializations.AsEnumerable());
+        }
+
+        [HttpGet("GetReviewsByUser/{userId}")]
+        public async Task<IActionResult> GetReviewsByUser(int userId)
+        {
+            return Ok(_context.Reviews
+                .Join(_context.Statements,
+                r => r.StatementId,
+                s => s.Id,
+                (r, s) => new {Review = r, Statement = s})
+                .Where(x => x.Statement.ProfessionalId == userId)
+                .Select(x => x.Review)
+                .AsEnumerable());
         }
 
         [HttpGet("GetSpecStats")]

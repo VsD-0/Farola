@@ -16,6 +16,9 @@ namespace Farola.API
         [Get("/Professional/GetSpecializations")]
         Task<IEnumerable<Specialization>> GetSpecializations();
 
+        [Get("/Professional/GetReviewsByUser/{userid}")]
+        Task<IEnumerable<Review>> GetReviewsByUser(int userId);
+
         [Get("/Professional/GetSpecStats")]
         Task<IEnumerable<SpecStat>> GetSpecStats();
 
