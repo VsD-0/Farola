@@ -20,6 +20,13 @@ namespace Farola.API.Controllers
             _context = context; 
         }
 
+        [HttpGet("GetStatementsById/{proId}")]
+        [Authorize(Roles = "1")]
+        public async Task<IActionResult> GetStatementsById(int proId)
+        {
+            return Ok(_context.Statements.Where(s => s.ProfessionalId == proId).AsEnumerable());
+        }
+
         [HttpPost("Send")]
         [Authorize(Roles = "2")]
         public async Task<IActionResult> SendStatement([FromBody] SendStatementCommand sendStatementCommand)

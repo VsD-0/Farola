@@ -1,0 +1,56 @@
+﻿@page "/statements/{proId}"
+@using Farola.API
+@using Farola.Database.Models
+@using Farola.Infrastructure.Handlers
+@using System.IdentityModel.Tokens.Jwt
+@inject IStatementClient StatementAPI
+
+<FluentStack Orientation="Orientation.Vertical">
+@if (Stats != null)
+{
+    @foreach (Statement item in Stats)
+    {
+        <FluentCard>
+            <FluentStack>
+                <FluentLabel>@item.Client.Surname</FluentLabel>
+                    <FluentLabel>@item.Status.Name</FluentLabel>
+                <FluentLabel>@item.DateAdded</FluentLabel>
+                @if (item.DateExpiration != null)
+                {
+                    <FluentLabel>@item.DateExpiration</FluentLabel>
+                }
+            </FluentStack>
+        </FluentCard>
+    }
+}
+</FluentStack>
+
+@code {
+    [Parameter]
+    public string proId { get; set; }
+
+    public List<Statement> Stats { get; set; }
+
+    private string? role = "2";
+    private string? userId = "0";
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (TokenStorage.Token is not null)
+        {
+            var tokenHandler = new JwtSecurityTokenHandler();
+
+            // Получение токена
+            var jwtToken = tokenHandler.ReadJwtToken(TokenStorage.Token);
+
+            // Получение роли из токена
+            var roleClaim = jwtToken.Claims.FirstOrDefault(claim => claim.Type == "role");
+            role = roleClaim is not null ? roleClaim.Value : "2";
+
+            var idClaim = jwtToken.Claims.FirstOrDefault(claim => claim.Type == "nameid");
+            userId = idClaim is not null ? idClaim.Value : "0";
+
+            Stats = (await StatementAPI.GetStatementsById(int.Parse(userId))).ToList<Statement>();
+        }
+    }
+}

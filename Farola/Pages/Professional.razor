@@ -110,11 +110,6 @@ else
         }
     }
 
-    private async Task GoBack()
-    {
-        await JSRuntime.InvokeVoidAsync("history.back");
-    }
-
     private async Task SendStatement()
     {
         await StatementAPI.SendStatement(new ViewModels.SendStatement { ClientId = int.Parse(clientId), ProfessionalId = User.Id  });

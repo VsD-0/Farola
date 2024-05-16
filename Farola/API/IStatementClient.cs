@@ -6,6 +6,9 @@ namespace Farola.API
 {
     public interface IStatementClient
     {
+        [Get("/Statement/GetStatementsById/{proId}")]
+        Task<IEnumerable<Statement>> GetStatementsById(int proId);
+
         [Post("/Statement/Send")]
         Task<Statement> SendStatement(SendStatement request);
 
