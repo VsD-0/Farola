@@ -6,6 +6,7 @@ using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Net;
+using System.Threading;
 
 
 namespace Farola.API.Controllers
@@ -73,6 +74,15 @@ namespace Farola.API.Controllers
                 .AsEnumerable());
         }
 
+        [HttpGet("GetReviewBestPro")]
+        public async Task<IActionResult> GetReviewBestPro(int pageNumber, int pageSize)
+        {
+            
+
+            return Ok();
+        }
+
+
         [HttpGet("GetSpecStats")]
         public async Task<IActionResult> GetSpecStats()
         {
@@ -83,7 +93,8 @@ namespace Farola.API.Controllers
                     (u, sp) => new { User = u, Spec = sp })
                 .Where(x => x.User.RoleId == 1)
                 .GroupBy(x => x.Spec.Name)
-                .Select(g => new SpecStat { Name = g.Key, Count = g.Count()})
+                .Select(g => new SpecStat { Spec = g.Select(x => x.Spec).First(), Count = g.Count()})
+                .OrderByDescending(x => x.Count)
                 .AsEnumerable());
         }
 

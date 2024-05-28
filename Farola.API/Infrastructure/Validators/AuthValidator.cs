@@ -23,7 +23,14 @@ namespace Farola.API.Infrastructure.Validators
                .NotNull()
                .WithMessage("Это обязательное поле")
                .Must(IsExistLogin)
-               .WithMessage("Пользователь не существует");
+               .WithMessage("Пользователь не существует")
+               .Custom((x, context) =>
+               {
+                   if (!_context.Users.Any(u => u.Email == x))
+                   {
+                       context.AddFailure("Email", "Пользователь не существует");
+                   }
+               }); ;
 
             // Проверка пароля
             RuleFor(x => x.Password)

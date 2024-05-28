@@ -1,5 +1,6 @@
 ﻿using Farola.API.Infrastructure.Commands;
 using Farola.Database.Models;
+using Farola.Domain.Models;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -24,7 +25,14 @@ namespace Farola.API.Controllers
         [Authorize(Roles = "1")]
         public async Task<IActionResult> GetStatementsById(int proId)
         {
-            return Ok(_context.Statements.Where(s => s.ProfessionalId == proId).AsEnumerable());
+            return Ok(_context.Statements.Where(s => s.ProfessionalId == proId)
+                .Select(s => new StatementsViewModel
+                {
+                    Client = $"{_context.Users.FirstOrDefault(u => u.Id == s.ClientId).Surname} {_context.Users.FirstOrDefault(u => u.Id == s.ClientId).Name} {_context.Users.FirstOrDefault(u => u.Id == s.ClientId).Patronymic}",
+                    Status =  _context.StatementStatuses.FirstOrDefault(u => u.Id == s.StatusId).Name,
+                    DateAdded = s.DateAdded,
+                    DateExpiration = s.DateExpiration
+                }).AsEnumerable());
         }
 
         [HttpPost("Send")]

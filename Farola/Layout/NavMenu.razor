@@ -1,5 +1,6 @@
 ﻿@using Farola.API
 @using Farola.Database.Models
+@using Farola.Domain.Models
 @using Farola.Infrastructure.Handlers
 @using System.IdentityModel.Tokens.Jwt
 @using Farola.Infrastructure.Models
@@ -18,16 +19,21 @@
         }
         @if (specs != null)
         {
-            <FluentListbox TOption="Specialization"
+            <FluentListbox TOption="SpecStat"
             Label="Специализации"
-            Items="@specs"
+            Items="@specsList"
             Id="spec-listbox"
             Height="150px"
             Multiple=false
-            OptionValue="@(s => s.Id.ToString())"
-            OptionText="@(s => s.Name)"
+            OptionValue="@(s => s.Spec.Id.ToString())"
+            OptionText="@(s => s.Spec.Name)"
             @bind-Value="@SelectedValue"
-            @bind-SelectedOption="@SelectedItem"/>
+            @bind-SelectedOption="@SelectedItem">
+                <OptionTemplate>
+                     @context.Spec.Name
+                     @context.Count
+                </OptionTemplate>
+            </FluentListbox>
         }
         else
         {
@@ -36,8 +42,18 @@
     </FluentNavMenu>
 </nav>
 
+<!--
+
+@if (TokenStorage.Token is not null && role == "1")
+{
+            <FluentButton OnClick="Stats">Заявки</FluentButton>
+}
+-->
+
 @code{
+    private List<SpecStat> specsList;
     private List<Specialization> specs;
+    private List<int> countSpecs;
     private string selectedValue;
     private string SelectedValue 
     {
@@ -52,7 +68,7 @@
         }
 
     }
-    private Specialization SelectedItem {get; set;}
+    private SpecStat SelectedItem {get; set;}
 
     private string? role = "2";
     private string? userId = "0";
@@ -60,6 +76,7 @@
     protected override async Task OnInitializedAsync()
     {
         specs = (await ProfessionalAPI.GetSpecializations()).ToList();
+        specsList = (await ProfessionalAPI.GetSpecStats()).ToList();
 
         if (TokenStorage.Token is not null)
         {

@@ -15,11 +15,11 @@
 <FluentStack HorizontalAlignment="HorizontalAlignment.Center" VerticalAlignment="VerticalAlignment.Center" Orientation="Orientation.Vertical">
     <FluentLabel Typo="Typography.H2">Авторизация</FluentLabel>
     <FluentCard Width="400px" Height="400px">
-        <FluentLabel>@error_general</FluentLabel>
-        <FluentTextField @bind-Value=email TextFieldType="TextFieldType.Email" Spellcheck="true" Placeholder="Введите эл. почту" Label="Эл. почта"/>
-        <FluentLabel>@error_email</FluentLabel>
-        <FluentTextField @bind-Value=password TextFieldType="TextFieldType.Password" Placeholder="Введите пароль" Label="Пароль"/>
-        <FluentLabel>@error_password</FluentLabel>
+        <FluentLabel>@Error_general</FluentLabel>
+        <FluentTextField @bind-Value=Email TextFieldType="TextFieldType.Email" Spellcheck="true" Placeholder="Введите эл. почту" Label="Эл. почта"/>
+        <FluentLabel>@Error_email</FluentLabel>
+        <FluentTextField @bind-Value=Password TextFieldType="TextFieldType.Password" Placeholder="Введите пароль" Label="Пароль"/>
+        <FluentLabel>@Error_password</FluentLabel>
         <FluentButton OnClick="Login">Войти</FluentButton>
     </FluentCard>
 </FluentStack>
@@ -60,7 +60,7 @@
         }
         catch (ValidationApiException ex)
         {
-            Error_email = error_password = Error_general = "";
+            Error_email = Error_password = Error_general = "";
             var errors = ex.Content is not null ? ex.Content.Errors : new();
 
             foreach (var item in errors.Keys)

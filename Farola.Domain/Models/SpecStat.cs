@@ -1,8 +1,10 @@
-﻿namespace Farola.Domain.Models
+﻿using Farola.Database.Models;
+
+namespace Farola.Domain.Models
 {
     public class SpecStat
     {
-        public string? Name { get; set; }
+        public Specialization Spec { get; set; }
         public int Count { get; set; }
     }
 }

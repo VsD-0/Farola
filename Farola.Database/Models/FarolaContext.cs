@@ -28,7 +28,6 @@ public partial class FarolaContext : DbContext
     public virtual DbSet<StatementStatus> StatementStatuses { get; set; }
 
     public virtual DbSet<User> Users { get; set; }
-
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<Favorite>(entity =>
@@ -67,6 +66,10 @@ public partial class FarolaContext : DbContext
             entity.Property(e => e.Id)
                 .HasComment("Идентификатор отзыва")
                 .HasColumnName("id");
+            entity.Property(e => e.DateAdded)
+                .HasDefaultValueSql("now()")
+                .HasComment("Дата добавления")
+                .HasColumnName("date_added");
             entity.Property(e => e.Grade)
                 .HasComment("Оценка работы")
                 .HasColumnName("grade");
@@ -125,6 +128,9 @@ public partial class FarolaContext : DbContext
             entity.Property(e => e.ClientId)
                 .HasComment("Номер клиента")
                 .HasColumnName("client_id");
+            entity.Property(e => e.Comment)
+                .HasComment("Комментарий специалиста")
+                .HasColumnName("comment");
             entity.Property(e => e.DateAdded)
                 .HasDefaultValueSql("now()")
                 .HasComment("Дата создания")
@@ -132,6 +138,9 @@ public partial class FarolaContext : DbContext
             entity.Property(e => e.DateExpiration)
                 .HasComment("Дата закрытия заявки")
                 .HasColumnName("date_expiration");
+            entity.Property(e => e.Grade)
+                .HasComment("Оценка специалиста на заказ")
+                .HasColumnName("grade");
             entity.Property(e => e.ProfessionalId)
                 .HasComment("Номер специалиста")
                 .HasColumnName("professional_id");

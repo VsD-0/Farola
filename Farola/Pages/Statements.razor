@@ -1,6 +1,7 @@
 ﻿@page "/statements/{proId}"
 @using Farola.API
 @using Farola.Database.Models
+@using Farola.Domain.Models
 @using Farola.Infrastructure.Handlers
 @using System.IdentityModel.Tokens.Jwt
 @inject IStatementClient StatementAPI
@@ -8,12 +9,12 @@
 <FluentStack Orientation="Orientation.Vertical">
 @if (Stats != null)
 {
-    @foreach (Statement item in Stats)
+        @foreach (StatementsViewModel item in Stats)
     {
         <FluentCard>
             <FluentStack>
-                <FluentLabel>@item.Client.Surname</FluentLabel>
-                    <FluentLabel>@item.Status.Name</FluentLabel>
+                <FluentLabel>@item.Client</FluentLabel>
+                    <FluentLabel>@item.Status</FluentLabel>
                 <FluentLabel>@item.DateAdded</FluentLabel>
                 @if (item.DateExpiration != null)
                 {
@@ -29,7 +30,7 @@
     [Parameter]
     public string proId { get; set; }
 
-    public List<Statement> Stats { get; set; }
+    public List<StatementsViewModel> Stats { get; set; }
 
     private string? role = "2";
     private string? userId = "0";
@@ -50,7 +51,7 @@
             var idClaim = jwtToken.Claims.FirstOrDefault(claim => claim.Type == "nameid");
             userId = idClaim is not null ? idClaim.Value : "0";
 
-            Stats = (await StatementAPI.GetStatementsById(int.Parse(userId))).ToList<Statement>();
+            Stats = (await StatementAPI.GetStatementsById(int.Parse(userId))).ToList<StatementsViewModel>();
         }
     }
 }
