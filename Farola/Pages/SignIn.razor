@@ -12,17 +12,37 @@
 
 @page "/user/signin"
 
-<FluentStack HorizontalAlignment="HorizontalAlignment.Center" VerticalAlignment="VerticalAlignment.Center" Orientation="Orientation.Vertical">
-    <FluentLabel Typo="Typography.H2">Авторизация</FluentLabel>
-    <FluentCard Width="400px" Height="400px">
-        <FluentLabel>@Error_general</FluentLabel>
-        <FluentTextField @bind-Value=Email TextFieldType="TextFieldType.Email" Spellcheck="true" Placeholder="Введите эл. почту" Label="Эл. почта"/>
-        <FluentLabel>@Error_email</FluentLabel>
-        <FluentTextField @bind-Value=Password TextFieldType="TextFieldType.Password" Placeholder="Введите пароль" Label="Пароль"/>
-        <FluentLabel>@Error_password</FluentLabel>
-        <FluentButton OnClick="Login">Войти</FluentButton>
-    </FluentCard>
-</FluentStack>
+<FluentLayout Style="align-items: center; align-content:center" >
+    <FluentGrid Justify="JustifyContent.Center">
+        <FluentGridItem xxl="12" xl="12" lg="12" md="12" sm="12" xs="12" Justify="JustifyContent.Center">
+            <FluentLabel Typo="Typography.H2">Авторизация</FluentLabel>
+        </FluentGridItem>
+        <FluentGridItem xxl="12" xl="12" lg="12" md="12" sm="12" xs="12" Justify="JustifyContent.Center">
+            <FluentCard Width="400px" Height="400px">
+                <FluentGrid>
+                    <FluentGridItem xxl="12" xl="12" lg="12" md="12" sm="12" xs="12" Justify="JustifyContent.Center">
+                        <FluentLabel>@Error_general</FluentLabel>
+                    </FluentGridItem>
+                    <FluentGridItem xxl="12" xl="12" lg="12" md="12" sm="12" xs="12" Justify="JustifyContent.Center">
+                        <FluentTextField @bind-Value=Email TextFieldType="TextFieldType.Email" Spellcheck="true" Placeholder="Введите эл. почту" Label="Эл. почта" />
+                    </FluentGridItem>
+                    <FluentGridItem xxl="12" xl="12" lg="12" md="12" sm="12" xs="12" Justify="JustifyContent.Center">
+                        <FluentLabel>@Error_email</FluentLabel>
+                    </FluentGridItem>
+                    <FluentGridItem xxl="12" xl="12" lg="12" md="12" sm="12" xs="12" Justify="JustifyContent.Center">
+                        <FluentTextField @bind-Value=Password TextFieldType="TextFieldType.Password" Placeholder="Введите пароль" Label="Пароль" />
+                    </FluentGridItem>
+                    <FluentGridItem xxl="12" xl="12" lg="12" md="12" sm="12" xs="12" Justify="JustifyContent.Center">
+                        <FluentLabel>@Error_password</FluentLabel>
+                    </FluentGridItem>
+                    <FluentGridItem xxl="12" xl="12" lg="12" md="12" sm="12" xs="12" Justify="JustifyContent.Center">
+                        <FluentButton OnClick="Login">Войти</FluentButton>
+                    </FluentGridItem>
+                </FluentGrid>
+            </FluentCard>
+        </FluentGridItem>
+    </FluentGrid>
+</FluentLayout>
 
 @code {
     private string Email { get; set; }
@@ -55,8 +75,10 @@
             clientId = idClaim is not null ? idClaim.Value : "0";
             CurrentUser.Id = clientId;
             CurrentUser.Role = role;
+            var user = await UserAPI.GetUserById(int.Parse(clientId));
+            CurrentUser.UserName = $"{user.Surname} {user.Name} {user.Patronymic}";
 
-            Navigation.NavigateTo("/professional/all/search");
+            Navigation.NavigateTo("/");
         }
         catch (ValidationApiException ex)
         {

@@ -6,5 +6,6 @@ namespace Farola.Infrastructure.Models
     {
         public static string Id { get; set; }
         public static string Role { get; set; }
+        public static string UserName { get; set; }
     }
 }

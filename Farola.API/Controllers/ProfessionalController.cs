@@ -77,9 +77,50 @@ namespace Farola.API.Controllers
         [HttpGet("GetReviewBestPro")]
         public async Task<IActionResult> GetReviewBestPro(int pageNumber, int pageSize)
         {
-            
+            var reviews = _context.Statements
+                .Join(_context.Reviews,
+                s => s.Id,
+                r => r.StatementId,
+                (s, r) => new { Statement = s, Review = r })
+                .Where(x => x.Review.Grade >= 4)
+                .GroupBy(x => x.Statement.ProfessionalId)
+                .Select(x => new ReviewViewModel
+                {
+                    Client = _context.Users.FirstOrDefault(u => u.Id == x.FirstOrDefault().Statement.ClientId),
+                    Professional = _context.Users.FirstOrDefault(u => u.Id == x.FirstOrDefault().Statement.ProfessionalId),
+                    AvgGrade = _context.Reviews
+                    .Join(_context.Statements,
+                        r => r.StatementId,
+                        s => s.Id,
+                        (r, s) => new { Statement = s, Review = r })
+                    .Where(y => y.Statement.ProfessionalId == x.FirstOrDefault().Statement.ProfessionalId).Average(r => r.Review.Grade),
+                    CountGrade = _context.Reviews
+                    .Join(_context.Statements,
+                        r => r.StatementId,
+                        s => s.Id,
+                        (r, s) => new { Statement = s, Review = r })
+                    .Where(y => y.Statement.ProfessionalId == x.FirstOrDefault().Statement.ProfessionalId).Count(),
+                    Grade = x.FirstOrDefault().Review.Grade,
+                    Text = x.FirstOrDefault().Review.Text,
+                    DateAdded = x.FirstOrDefault().Review.DateAdded
+                })
+                .OrderByDescending(x => x.Grade);
 
-            return Ok();
+            var skip = (pageNumber - 1) * pageSize;
+            var result = new List<ReviewViewModel>(reviews.Skip(skip).Take(pageSize));
+
+            var pagination = new Pagination<ReviewViewModel>
+            {
+                CurrentPage = pageNumber,
+                PageSize = pageSize,
+                TotalItems = await reviews.CountAsync()
+            };
+
+            return Ok(new PaginatedResult<ReviewViewModel>
+            {
+                Pagination = pagination,
+                Items = result
+            });
         }
 
 

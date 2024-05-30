@@ -28,8 +28,11 @@ namespace Farola.API.Controllers
             return Ok(_context.Statements.Where(s => s.ProfessionalId == proId)
                 .Select(s => new StatementsViewModel
                 {
+                    Id = s.Id,
                     Client = $"{_context.Users.FirstOrDefault(u => u.Id == s.ClientId).Surname} {_context.Users.FirstOrDefault(u => u.Id == s.ClientId).Name} {_context.Users.FirstOrDefault(u => u.Id == s.ClientId).Patronymic}",
                     Status =  _context.StatementStatuses.FirstOrDefault(u => u.Id == s.StatusId).Name,
+                    Comment = s.Comment,
+                    Grade = s.Grade,
                     DateAdded = s.DateAdded,
                     DateExpiration = s.DateExpiration
                 }).AsEnumerable());
@@ -41,6 +44,46 @@ namespace Farola.API.Controllers
         {
             var statement = await _mediator.Send(sendStatementCommand);
             return statement is not null ? Created(nameof(SendStatement), statement) : BadRequest("Не удалось создать заявку");
+        }
+
+        [HttpGet("GetStatuses")]
+        public async Task<IActionResult> GetStatuses()
+        {
+            return Ok(_context.StatementStatuses.AsEnumerable());
+        }
+
+        [HttpPost("UpdateStatus/{statementId}/{newStatus}")]
+        [Authorize(Roles = "1")]
+        public async Task UpdateStatus(int statementId, int newStatus)
+        {
+            var updateStat = _context.Statements.FirstOrDefault(s => s.Id == statementId);
+            if (newStatus == 4)
+            {
+                updateStat.DateExpiration = DateTime.UtcNow;
+            }
+            updateStat.StatusId = newStatus;
+            _context.Statements.Update(updateStat);
+            await _context.SaveChangesAsync();
+        }
+
+        [HttpPost("SaveGrade/{statementId}/{grade}")]
+        [Authorize(Roles = "1")]
+        public async Task SaveGrade(int statementId, float grade)
+        {
+            var updateStat = _context.Statements.FirstOrDefault(s => s.Id == statementId);
+            updateStat.Grade = grade;
+            _context.Statements.Update(updateStat);
+            await _context.SaveChangesAsync();
+        }
+
+        [HttpPost("SaveComment/{statementId}/{comment}")]
+        [Authorize(Roles = "1")]
+        public async Task SaveComment(int statementId, string comment)
+        {
+            var updateStat = _context.Statements.FirstOrDefault(s => s.Id == statementId);
+            updateStat.Comment = comment;
+            _context.Statements.Update(updateStat);
+            await _context.SaveChangesAsync();
         }
 
         [HttpGet("IsExistActive/{clientId}/{proId}")]

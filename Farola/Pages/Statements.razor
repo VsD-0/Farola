@@ -9,18 +9,49 @@
 <FluentStack Orientation="Orientation.Vertical">
 @if (Stats != null)
 {
-        @foreach (StatementsViewModel item in Stats)
+    @foreach (StatementsViewModel item in Stats)
     {
-        <FluentCard>
-            <FluentStack>
-                <FluentLabel>@item.Client</FluentLabel>
-                    <FluentLabel>@item.Status</FluentLabel>
-                <FluentLabel>@item.DateAdded</FluentLabel>
-                @if (item.DateExpiration != null)
-                {
-                    <FluentLabel>@item.DateExpiration</FluentLabel>
-                }
-            </FluentStack>
+        <FluentCard AreaRestricted=false @key=@item>
+            <FluentGrid>
+                <FluentGridItem xxl="2" xl="2" lg="3" md="12" sm="6" xs="12">
+                    <FluentLabel>Клиент: @item.Client</FluentLabel>
+                </FluentGridItem>
+                <FluentGridItem xxl="2" xl="2" lg="3" md="4" sm="6" xs="12">
+                        <FluentLabel Color="@(item.Status == "Отправлено" ? Color.Info : item.Status == "Принято" ? Color.Success : item.Status == "Отклонено" ? Color.Error : Color.Neutral)">@item.Status</FluentLabel>
+                 </FluentGridItem>
+                <FluentGridItem xxl="2" xl="2" lg="3" md="4" sm="4" xs="12">
+                    @if (Grades != null)
+                    {
+                        <FluentCombobox Items="Grades" TOption="Option<float?>" Width="60px" OptionValue="@(i => i.Value.ToString())" OptionText="@(i => i.Text.ToString())" ValueChanged="@(() => SaveGrade(item.Id, item.Grade))"></FluentCombobox>
+                    }
+                </FluentGridItem>
+                <FluentGridItem xxl="2" xl="2" lg="3" md="4" sm="4" xs="12">
+                    <FluentTextArea Value="@item.Comment"></FluentTextArea>
+                </FluentGridItem>
+                <FluentGridItem xxl="2" xl="2" lg="3" md="4" sm="4" xs="12">
+                    <FluentButton OnClick="@(() => SaveComment(item.Id, item.Comment))">Сохранить комментарий</FluentButton>
+                </FluentGridItem>
+                <FluentGridItem xxl="2" xl="2" lg="3" md="4" sm="4" xs="12">
+                        <FluentLabel>@item.DateAdded</FluentLabel>
+                </FluentGridItem>
+                <FluentGridItem xxl="2" xl="2" lg="3" md="4" sm="4" xs="12">
+                    @if (item.DateExpiration != null)
+                    {
+                        <FluentLabel>@item.DateExpiration</FluentLabel>
+                    }
+                </FluentGridItem>
+                    <FluentGridItem xxl="2" xl="2" lg="3" md="4" sm="12" xs="12">
+                    @if (item.Status == "Отправлено")
+                    {
+                        <FluentButton OnClick="@(() => Accept(item.Id))">Принять</FluentButton>
+                        <FluentButton OnClick="@(() => Refuse(item.Id))">Отклонить</FluentButton>
+                    }
+                    @if (item.Status == "Принято")
+                    {
+                        <FluentButton OnClick="@(() => Close(item.Id))">Закрыть</FluentButton>
+                    }
+                </FluentGridItem>
+            </FluentGrid>
         </FluentCard>
     }
 }
@@ -35,8 +66,18 @@
     private string? role = "2";
     private string? userId = "0";
 
+    private float selectedGrade;
+
+    private string? Grade;
+    private Option<float?>? GradeOption;
+    List<Option<float?>> Grades = new();
+
     protected override async Task OnInitializedAsync()
     {
+        for (double i = 1; i <= 5; i+=0.5)
+        {
+            Grades.Add(new Option<float?> { Value = (float)i , Text = (float)i});
+        }
         if (TokenStorage.Token is not null)
         {
             var tokenHandler = new JwtSecurityTokenHandler();
@@ -53,5 +94,30 @@
 
             Stats = (await StatementAPI.GetStatementsById(int.Parse(userId))).ToList<StatementsViewModel>();
         }
+    }
+
+    private async Task Accept(int statementId)
+    {
+        await StatementAPI.UpdateStatus(statementId, 2);
+        Stats = (await StatementAPI.GetStatementsById(int.Parse(userId))).ToList<StatementsViewModel>();
+    }
+    private async Task Refuse(int statementId)
+    {
+        await StatementAPI.UpdateStatus(statementId, 3);
+        Stats = (await StatementAPI.GetStatementsById(int.Parse(userId))).ToList<StatementsViewModel>();
+    }
+    private async Task Close(int statementId)
+    {
+        await StatementAPI.UpdateStatus(statementId, 4);
+        Stats = (await StatementAPI.GetStatementsById(int.Parse(userId))).ToList<StatementsViewModel>();
+    }
+    private async Task SaveGrade(int statementId, float? grade)
+    {
+        if (grade != null)
+            await StatementAPI.SaveGrade(statementId, grade);
+    }
+    private async Task SaveComment(int statementId, string comment)
+    {
+        await StatementAPI.SaveComment(statementId, comment);
     }
 }

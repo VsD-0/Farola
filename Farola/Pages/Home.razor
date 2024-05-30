@@ -54,6 +54,7 @@
             <FluentButton Id="btn-search" Appearance="Appearance.Accent" Style="width: 50%" OnClick="Search">Найти</FluentButton>
         </FluentGridItem>
     </FluentGrid>
+    <br/>
     <!--Карточки специализаций-->
     <FluentGrid AdaptiveRendering="true" Justify="JustifyContent.SpaceAround" Style="width: 100%">
         @if(specstats != null)
@@ -83,13 +84,94 @@
             <FluentProgressRing/>
         }
     </FluentGrid>
+    <br/>
     <!--Отзывы лучших специалистов-->
-
+    <FluentGrid AdaptiveRendering="true" Justify="JustifyContent.Center" Style="width: 100%">
+        <FluentGridItem Id="review-title-container" xxl="12" xl="12" lg="12" md="12" sm="12" xs="12" Justify="JustifyContent.FlexStart">
+            <FluentLabel Id ="review-title" Alignment="HorizontalAlignment.Start" Typo="Typography.H2" Weight="FontWeight.Bold">Отзывы</FluentLabel>
+        </FluentGridItem>
+        <FluentGridItem Id="reviews-container" xxl="12" xl="12" lg="12" md="12" sm="12" xs="12" Justify="JustifyContent.Center">
+            <FluentGrid AdaptiveRendering="true" Justify="JustifyContent.SpaceAround">
+                @if (reviews != null)
+                {
+                    @if (reviews?.Items?.Count > 0)
+                    {
+                        @foreach (var item in reviews.Items)
+                        {
+                            <FluentGridItem xxl="4" xl="4" lg="6" md="6" sm="12" xs="12" Justify="JustifyContent.Center">
+                                <FluentCard Width="100%" AreaRestricted="true" Style="padding: 3px 3px 3px 3px">
+                                    <FluentGrid Style="height: auto; padding: 10px">
+                                        <FluentGridItem xxl="2" xl="2" lg="2" md="2" sm="2" xs="2">
+                                            <FluentIcon Value="@(new Icons.Regular.Size24.Person())" Title="Person" Width="70px" Color="Color.Accent" />
+                                        </FluentGridItem>
+                                        <FluentGridItem xxl="10" xl="10" lg="10" md="10" sm="10" xs="10">
+                                            <FluentGrid Justify="JustifyContent.FlexStart">
+                                                <FluentGridItem xxl="12" xl="12" lg="12" md="12" sm="12" xs="12" Justify="JustifyContent.FlexStart">
+                                                    <FluentLabel>@item.Professional.Surname @item.Professional.Name @item.Professional.Patronymic</FluentLabel>
+                                                </FluentGridItem>
+                                                <FluentGridItem xxl="2" xl="2" lg="2" md="2" sm="2" xs="2" Justify="JustifyContent.FlexStart">
+                                                    <FluentLabel> <FluentIcon Value="@(new Icons.Filled.Size24.Star())" Title="Star" Width="14px" Color="Color.Accent" /> @Math.Round(item.AvgGrade, 2, MidpointRounding.ToPositiveInfinity)</FluentLabel>
+                                                </FluentGridItem>
+                                                <FluentGridItem xxl="6" xl="6" lg="6" md="6" sm="6" xs="6">
+                                                    <FluentLabel>Количество отзывов: @item.CountGrade</FluentLabel>
+                                                </FluentGridItem>
+                                            </FluentGrid>
+                                        </FluentGridItem>
+                                        <FluentGridItem xxl="6" xl="6" lg="6" md="6" sm="6" xs="6">
+                                            <FluentLabel>@item.Client.Name @item.Client.Patronymic поставил(а) оценку</FluentLabel>
+                                        </FluentGridItem>
+                                        <FluentGridItem xxl="6" xl="6" lg="6" md="6" sm="6" xs="6">
+                                            <FluentStack Orientation="Orientation.Horizontal">
+                                                @item.Grade
+                                                @for (int i = 1; i < item.Grade; i++)
+                                                {
+                                                    <FluentIcon Value="@(new Icons.Filled.Size24.Star())" Title="Star" Width="14px"  Color="Color.Accent" />
+                                                }
+                                                @if (item.Grade == 5)
+                                                {
+                                                    <FluentIcon Value="@(new Icons.Filled.Size20.StarEmphasis())" Width="14px" Color="Color.Accent" />
+                                                }
+                                                @if (item.Grade == 4.5)
+                                                {
+                                                    <FluentIcon Value="@(new Icons.Filled.Size24.StarHalf())" Title="Star" Width="14px" />
+                                                }
+                                            </FluentStack>
+                                        </FluentGridItem>
+                                        @if (item.Text != null || !String.IsNullOrEmpty(item.Text))
+                                        {
+                                            <FluentGridItem xxl="12" xl="12" lg="12" md="12" sm="12" xs="12" Justify="JustifyContent.FlexStart">
+                                                <FluentStack Orientation="Orientation.Vertical">
+                                                    <FluentLabel>Отзыв</FluentLabel>
+                                                    <FluentLabel>@item.Text</FluentLabel>
+                                                </FluentStack>
+                                            </FluentGridItem>
+                                        }
+                                        <FluentGridItem xxl="12" xl="12" lg="12" md="12" sm="12" xs="12">
+                                            <FluentLabel>Дата @item.DateAdded</FluentLabel>
+                                        </FluentGridItem>
+                                    </FluentGrid>
+                                </FluentCard>
+                            </FluentGridItem>
+                        }
+                    }
+                    else
+                    {
+                        <FluentLabel>Отзывы отсутствуют</FluentLabel>
+                    }
+                }
+                else
+                {
+                    <FluentProgressRing />
+                }
+            </FluentGrid>
+        </FluentGridItem>
+    </FluentGrid>
 </FluentLayout>
 
 @code {
     private string? search;
     private List<SpecStat> specstats;
+    private PaginatedResult<ReviewViewModel> reviews;
     private string? role = "2";
     private string? clientId = "0";
 
@@ -99,6 +181,7 @@
     protected override async Task OnInitializedAsync()
     {
         specstats = (await ProfessionalAPI.GetSpecStats()).ToList<SpecStat>();
+        reviews = await ProfessionalAPI.GetReviewBestPro(1,15);
 
         rows = specstats.Count % 3 == 0 ? specstats.Count / 3 : specstats.Count / 3 + 1;
 

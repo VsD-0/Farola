@@ -1,21 +1,23 @@
-﻿@inherits LayoutComponentBase
+﻿@using Farola.Infrastructure.Models
+@inherits LayoutComponentBase
 <FluentLayout>
     <FluentHeader>
         Farola
         <FluentStack HorizontalAlignment="HorizontalAlignment.End">  
-        <FluentButton id="auth_menu" IconStart="@(new Icons.Filled.Size48.Person())" Appearance="Appearance.Accent" @onclick="@(() => open = !open)">
-        </FluentButton>
-        <FluentMenu Anchor="auth_menu" @bind-Open="open" VerticalThreshold="170">
-            <FluentNavMenu Style="color: black" Width="250">
-            <FluentNavLink Href="/user/signin">Войти</FluentNavLink>
-                <FluentNavGroup Title="Зарегистрироваться">
-                    <ChildContent>
-                        <FluentNavLink Href="/applicant/signup" IconColor="Color.Accent">Пользователь</FluentNavLink>
-                        <FluentNavLink Href="/professional/signup" IconColor="Color.Accent">Специалист</FluentNavLink>
-                    </ChildContent>
-                </FluentNavGroup>
-            </FluentNavMenu>
-        </FluentMenu>
+            <FluentLabel Color="Color.Fill" Typo="Typography.H4">@CurrentUser.UserName</FluentLabel>
+            <FluentButton id="auth_menu" IconStart="@(new Icons.Filled.Size48.Person())" Appearance="Appearance.Accent" @onclick="@(() => open = !open)">
+            </FluentButton>
+            <FluentMenu Anchor="auth_menu" @bind-Open="open" VerticalThreshold="170">
+                <FluentNavMenu Style="color: black" Width="250">
+                <FluentNavLink Href="/user/signin">Войти</FluentNavLink>
+                    <FluentNavGroup Title="Зарегистрироваться">
+                        <ChildContent>
+                            <FluentNavLink Href="/applicant/signup" IconColor="Color.Accent">Пользователь</FluentNavLink>
+                            <FluentNavLink Href="/professional/signup" IconColor="Color.Accent">Специалист</FluentNavLink>
+                        </ChildContent>
+                    </FluentNavGroup>
+                </FluentNavMenu>
+            </FluentMenu>
         </FluentStack>
     </FluentHeader>
     <FluentStack Class="main" Orientation="Orientation.Horizontal" Width="100%">
@@ -34,10 +36,6 @@
         </FluentBodyContent>
     </FluentStack>
     <FluentFooter>
-        <div class="link1">
-        </div>
-        <div class="link2">
-        </div>
     </FluentFooter>
 </FluentLayout>
 

@@ -9,6 +9,8 @@ namespace Farola.API
     {
         [Get("/Professional/GetProfessionals")]
         Task<PaginatedResult<UserDTO>> GetProfessionals(int pageNumber, int pageSize, string? profession, string? specialization);
+        [Get("/Professional/GetReviewBestPro")]
+        Task<PaginatedResult<ReviewViewModel>> GetReviewBestPro(int pageNumber, int pageSize);
 
         [Get("/Professional/GetProfessional/{id}")]
         Task<UserDTO> GetProfessional(int id);
