@@ -1,0 +1,349 @@
+﻿@page "/statements/{proId}"
+@using Farola.API
+@using Farola.Database.Models
+@using Farola.Domain.Models
+@using Farola.Infrastructure.Handlers
+@using System.IdentityModel.Tokens.Jwt
+@inject IStatementClient StatementAPI
+@inject IDialogService DialogService
+@inject IToastService ToastService
+
+
+<FluentLayout>
+    <FluentGrid Justify="JustifyContent.Center">
+        <FluentGridItem xxl="12" xl="12" lg="12" md="12" sm="12" xs="12" Justify="JustifyContent.Center">
+            <FluentLabel Alignment="HorizontalAlignment.Center" Typo="Typography.H2" Weight="FontWeight.Bold">Заявки</FluentLabel>
+        </FluentGridItem>
+        <FluentGridItem xxl="12" xl="12" lg="12" md="12" sm="12" xs="12" Justify="JustifyContent.Center">
+            @if (Stats != null)
+            {
+                <FluentRadioGroup Required="true" @bind-Value=SelectedStatus Name="statuses" Orientation="Orientation.Horizontal">
+                    <FluentRadio Value="@("Все")">Все (@(Stats.Count()))</FluentRadio>
+                    <FluentRadio Value="@("Новое")">Новое (@(Stats.Where(s => s.Status == "Новое").Count()))</FluentRadio>
+                    <FluentRadio Value="@("Принято")">Принято (@(Stats.Where(s => s.Status == "Принято").Count()))</FluentRadio>
+                    <FluentRadio Value="@("Отклонено")">Отклонено (@(Stats.Where(s => s.Status == "Отклонено").Count()))</FluentRadio>
+                    <FluentRadio Value="@("Завершено")">Завершено (@(Stats.Where(s => s.Status == "Завершено").Count()))</FluentRadio>
+                </FluentRadioGroup>
+            }
+        </FluentGridItem>
+        <FluentGridItem xxl="12" xl="12" lg="12" md="12" sm="12" xs="12" Justify="JustifyContent.Center">
+            <FluentCheckbox @bind-Value=hideFinish AriaLabel="чекбокс, скрыть завершённые заявки">Скрыть завершённые заявки</FluentCheckbox>
+            <FluentCheckbox @bind-Value="hideRefuse" AriaLabel="чекбокс, скрыть отклонённые заявки">Скрыть отклонённые заявки</FluentCheckbox>
+        </FluentGridItem>
+        <FluentGridItem xxl="12" xl="12" lg="12" md="12" sm="12" xs="12" Justify="JustifyContent.Center">
+            <FluentGrid AdaptiveRendering=true Justify="JustifyContent.Center">
+            @if (Stats != null)
+            {
+                var filteredStatements = Stats;
+                if (selectedStatus != "Все")
+                {
+                    filteredStatements = Stats.Where(s => s.Status == selectedStatus).ToList();
+                }
+                @foreach (StatementsViewModel item in filteredStatements)
+                {
+                    <FluentGridItem xxl="4" xl="6" lg="6" md="12" sm="12" xs="12" Justify="JustifyContent.Center" hidden="@((item.Status == "Завершено" && hideFinish) || (item.Status == "Отклонено" && hideRefuse))">
+                        <FluentCard AreaRestricted=false @key=@item >
+                            <FluentGrid AdaptiveRendering=true>
+                                <FluentGridItem xxl="6" xl="6" lg="6" md="6" sm="6" xs="6" Justify="JustifyContent.FlexStart">
+                                    @if(role == "1")
+                                    {
+                                        <FluentLabel Alignment="HorizontalAlignment.Start" Typo="Typography.H3" Weight="FontWeight.Bold">@item.Client</FluentLabel>
+                                    }
+                                    @if(role == "2")
+                                    {
+                                        <FluentNavLink Href="@(GetProLink(item.Pro.Id))" IconColor="Color.Accent" Style="font-size: 24px; font-weight: bold">@item.Pro.Profession</FluentNavLink>
+                                    }
+                                </FluentGridItem>
+                                <FluentGridItem xxl="3" xl="3" lg="3" md="3" sm="3" xs="3" Justify="JustifyContent.FlexStart">
+                                    @if (role == "1" && item.AvgGradeClient != null)
+                                    {
+                                        <FluentStack>
+                                            <FluentIcon Value="@(new Icons.Filled.Size24.Star())"></FluentIcon>
+                                            <FluentLabel Alignment="HorizontalAlignment.Start" Typo="Typography.Subject" Weight="FontWeight.Bold">@item.AvgGradeClient</FluentLabel>
+                                        </FluentStack>
+                                    }
+                                    @if (role == "2" && item.AvgGradePro != null)
+                                    {
+                                        <FluentStack>
+                                            <FluentIcon Value="@(new Icons.Filled.Size24.Star())"></FluentIcon>
+                                            <FluentLabel Alignment="HorizontalAlignment.Start" Typo="Typography.Subject" Weight="FontWeight.Bold">@item.AvgGradePro</FluentLabel>
+                                        </FluentStack>
+                                    }
+                                </FluentGridItem>
+                                <FluentGridItem xxl="3" xl="3" lg="3" md="3" sm="3" xs="3" Justify="JustifyContent.FlexEnd">
+                                    <FluentLabel Typo=Typography.H4 Weight=FontWeight.Bold Alignment="HorizontalAlignment.End" Color="@(item.Status == "Новое" ? Color.Accent : item.Status == "Принято" ? Color.Success : item.Status == "Отклонено" ? Color.Error : Color.Neutral)">@item.Status</FluentLabel>
+                                </FluentGridItem>
+                                <FluentGridItem xxl="12" xl="12" lg="12" md="12" sm="12" xs="12" Justify="JustifyContent.FlexStart">
+                                    @if (role == "1")
+                                    {
+                                        <FluentLabel Alignment="HorizontalAlignment.Start" Typo="Typography.Subject">Номер телефона: @item.phoneClient</FluentLabel>
+                                    }
+                                    @if (role == "2")
+                                    {
+                                            <FluentLabel Alignment="HorizontalAlignment.Start" Typo="Typography.Subject">@item.Pro.Surname @item.Pro.Name @item.Pro.Patronymic</FluentLabel>
+                                    }
+                                    </FluentGridItem>
+                                @if ((item.Status == "Завершено") && item.Grades != null && item.Grades.Any())
+                                {
+                                    <FluentGridItem xxl="2" xl="2" lg="2" md="2" sm="2" xs="2" Justify="JustifyContent.Center">
+                                        @if (item.Grades != null && item.Grades.Any())
+                                        {
+                                            <FluentCombobox Items="item.Grades" TOption="Option<string>" Width="80px" OptionValue="@(i => i.Value)" OptionText="@(i => i.Text)" OptionSelected="@(i => i.Selected)" @bind-SelectedOption=item.GradeOption @key=item></FluentCombobox>
+                                        }
+                                    </FluentGridItem>
+                                    <FluentGridItem xxl="10" xl="10" lg="10" md="10" sm="10" xs="10" Justify="JustifyContent.FlexStart">
+                                        <FluentButton OnClick="@(() => SaveGrade(item.Id, item.GradeOption))">Сохранить оценку</FluentButton>
+                                    </FluentGridItem>
+                                }
+                                @if (role == "1")
+                                {
+                                    <FluentGridItem xxl="12" xl="12" lg="12" md="12" sm="12" xs="12">
+                                        <FluentTextArea Spellcheck=true Resize="TextAreaResize.Vertical" Placeholder="Введите комментарий..." Rows="5" Style="width: 100%; font-size: 14pt" @bind-Value=item.Comment></FluentTextArea>
+                                    </FluentGridItem>
+                                    <FluentGridItem xxl="6" xl="6" lg="6" md="6" sm="6" xs="6" Justify="JustifyContent.FlexStart">
+                                            <FluentButton OnClick="@(() => SaveComment(item.Id, item.Comment))">Сохранить комментарий</FluentButton>
+                                    </FluentGridItem>
+                                }
+                                @if (role == "2" && item.Status == "Завершено")
+                                {
+                                    <FluentGridItem xxl="12" xl="12" lg="12" md="12" sm="12" xs="12">
+                                        <FluentTextArea Spellcheck=true Resize="TextAreaResize.Vertical" Placeholder="Введите отзыв..." Rows="5" Style="width: 100%; font-size: 14pt" @bind-Value=item.Review></FluentTextArea>
+                                    </FluentGridItem>
+                                    <FluentGridItem xxl="6" xl="6" lg="6" md="6" sm="6" xs="6" Justify="JustifyContent.FlexStart">
+                                        <FluentButton OnClick="@(() => SaveComment(item.Id, item.Review))">Сохранить отзыв</FluentButton>
+                                    </FluentGridItem>
+                                }
+                                <FluentGridItem xxl="6" xl="6" lg="6" md="6" sm="6" xs="6" Justify="JustifyContent.FlexEnd">
+                                    <FluentStack Orientation="Orientation.Vertical">
+                                        <FluentLabel Typo="Typography.Subject">Дата создания: @item.DateAdded</FluentLabel>
+                                        @if (item.DateExpiration != null)
+                                        {
+                                            <FluentLabel Typo="Typography.Subject">Дата завершения: @item.DateExpiration</FluentLabel>
+                                        }
+                                    </FluentStack>
+                                </FluentGridItem>
+                                @if(role == "1")
+                                {
+                                    <FluentGridItem xxl="12" xl="12" lg="12" md="12" sm="12" xs="12" Justify="JustifyContent.FlexStart">
+                                        @if (item.Status == "Новое")
+                                        {
+                                            <FluentButton Style="margin: 3px" OnClick="@(() => Accept(item.Id))">Принять</FluentButton>
+                                            <FluentButton Style="margin: 3px" OnClick="@(() => Refuse(item.Id))">Отклонить</FluentButton>
+                                        }
+                                            @if (item.Status == "Принято")
+                                        {
+                                            <FluentButton Style="margin: 3px" OnClick="@(() => Close(item.Id))">Завершить</FluentButton>
+                                        }
+                                    </FluentGridItem>
+                                    @if (item.Status == "Завершено")
+                                    {
+                                        <FluentGridItem xxl="12" xl="12" lg="12" md="12" sm="12" xs="12" Justify="JustifyContent.FlexStart">
+                                            @if(item.GradeByClient != null)
+                                            {
+                                            
+                                                <FluentStack Orientation="Orientation.Horizontal">
+                                                    Оценка пользователя:
+                                                    @item.GradeByClient
+                                                    @for (int i = 0; i < item.GradeByClient; i++)
+                                                    {
+                                                        <FluentIcon Value="@(new Icons.Filled.Size24.Star())" Title="Star" Width="14px" Color="Color.Accent" />
+                                                        if (i == 3) break;
+                                                    }
+                                                    @if (item.GradeByClient == 5)
+                                                    {
+                                                        <FluentIcon Value="@(new Icons.Filled.Size20.StarEmphasis())" Width="14px" Color="Color.Accent" />
+                                                    }
+                                                    @if (item.GradeByClient == 4.5)
+                                                    {
+                                                        <FluentIcon Value="@(new Icons.Filled.Size24.StarHalf())" Title="Star" Width="14px" />
+                                                    }
+                                                </FluentStack>
+                                            }
+                                            else
+                                            {
+                                                <FluentLabel Typo="Typography.Subject">Клиент не поставил оценку</FluentLabel>
+                                            }
+                                        </FluentGridItem>
+                                        @if (item.Review != null)
+                                        {
+                                            <FluentGridItem xxl="12" xl="12" lg="12" md="12" sm="12" xs="12" Justify="JustifyContent.FlexStart">
+                                                <FluentLabel><span style="color: gray">Отзыв:</span><br />@item.Review</FluentLabel>
+                                            </FluentGridItem>
+                                        }
+                                    }
+                                }
+                                </FluentGrid>
+                        </FluentCard>
+                    </FluentGridItem>
+                }
+            }
+            </FluentGrid>
+        </FluentGridItem>
+    </FluentGrid>
+</FluentLayout>
+
+@code {
+    [Parameter]
+    public string proId { get; set; }
+
+    public List<StatementsViewModel> Stats { get; set; }
+
+    private string? role = "2";
+    private string? userId = "0";
+
+    string? selectedStatus = "Все";
+    bool hideFinish = true;
+    bool hideRefuse = true;
+
+    bool? canceled;
+
+    private string? SelectedStatus
+    {
+        get { return selectedStatus; }
+        set
+        {
+            selectedStatus = value;
+            if (selectedStatus == "Завершено")
+                hideFinish = false;
+            else
+                hideFinish = true;
+
+            if (selectedStatus == "Отклонено")
+                hideRefuse = false;
+            else
+                hideRefuse = true;
+        }
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (TokenStorage.Token is not null)
+        {
+            var tokenHandler = new JwtSecurityTokenHandler();
+
+            // Получение токена
+            var jwtToken = tokenHandler.ReadJwtToken(TokenStorage.Token);
+
+            // Получение роли из токена
+            var roleClaim = jwtToken.Claims.FirstOrDefault(claim => claim.Type == "role");
+            role = roleClaim is not null ? roleClaim.Value : "2";
+
+            var idClaim = jwtToken.Claims.FirstOrDefault(claim => claim.Type == "nameid");
+            userId = idClaim is not null ? idClaim.Value : "0";
+
+            if (role == "1")
+                Stats = (await StatementAPI.GetStatementsById(int.Parse(userId))).ToList<StatementsViewModel>();
+            if (role == "2")
+                Stats = (await StatementAPI.GetStatementsByClientId(int.Parse(userId))).ToList<StatementsViewModel>();
+        }
+    }
+
+    private async Task Accept(int statementId)
+    {
+        var dialog = await DialogService.ShowMessageBoxAsync(new DialogParameters<MessageBoxContent>()
+            {
+                Content = new()
+                {
+                    Title = "Подтверждение",
+                    MarkupMessage = new MarkupString("<h4>Вы уверены, что хотите принять заявку</h4>"),
+                    Icon = new Icons.Regular.Size24.Warning(),
+                    IconColor = Color.Warning,
+                },
+                PrimaryAction = "Да",
+                SecondaryAction = "Нет",
+                Width = "300px"
+            });
+        var result = await dialog.Result;
+        canceled = result.Cancelled;
+        if (canceled == false)
+        {
+            await StatementAPI.UpdateStatus(statementId, 2);
+            Stats = (await StatementAPI.GetStatementsById(int.Parse(userId))).ToList<StatementsViewModel>();
+        }
+    }
+    private async Task Refuse(int statementId)
+    {
+        var dialog = await DialogService.ShowMessageBoxAsync(new DialogParameters<MessageBoxContent>()
+            {
+                Content = new()
+                {
+                    Title = "Подтверждение",
+                    MarkupMessage = new MarkupString("<h4>Вы уверены, что хотите отклонить заявку</h4>"),
+                    Icon = new Icons.Regular.Size24.Warning(),
+                    IconColor = Color.Warning,
+                },
+                PrimaryAction = "Да",
+                SecondaryAction = "Нет",
+                Width = "300px"
+            });
+        var result = await dialog.Result;
+        canceled = result.Cancelled;
+        if (canceled == false)
+        {
+            await StatementAPI.UpdateStatus(statementId, 3);
+            Stats = (await StatementAPI.GetStatementsById(int.Parse(userId))).ToList<StatementsViewModel>();
+        }
+    }
+    private async Task Close(int statementId)
+    {
+        var dialog = await DialogService.ShowMessageBoxAsync(new DialogParameters<MessageBoxContent>()
+            {
+                Content = new()
+                {
+                    Title = "Подтверждение",
+                    MarkupMessage = new MarkupString("<h4>Вы уверены, что хотите закрыть заявку</h4>"),
+                    Icon = new Icons.Regular.Size24.Warning(),
+                    IconColor = Color.Warning,
+                },
+                PrimaryAction = "Да",
+                SecondaryAction = "Нет",
+                Width = "550px"
+            });
+        var result = await dialog.Result;
+        canceled = result.Cancelled;
+        if (canceled == false)
+        {
+            await StatementAPI.UpdateStatus(statementId, 4);
+            Stats = (await StatementAPI.GetStatementsById(int.Parse(userId))).ToList<StatementsViewModel>();
+        }
+    }
+    private async Task SaveGrade(int statementId, Option<string> grade)
+    {
+        if (grade != null)
+        {
+            await StatementAPI.SaveGrade(statementId, float.Parse(grade.Value), role);
+            ToastService.ShowSuccess("Оценка сохранена");
+        }
+    }
+    private async Task SaveComment(int statementId, string comment)
+    {
+        if (comment != null)
+        {
+            if (role == "1" || await StatementAPI.IsExistGrade(statementId))
+            {
+                await StatementAPI.SaveComment(statementId, comment, role);
+                ToastService.ShowSuccess("Комментарий сохранён");
+            }
+            else
+            {
+                var dialog = await DialogService.ShowMessageBoxAsync(new DialogParameters<MessageBoxContent>()
+                    {
+                        Content = new()
+                        {
+                            Title = "Предупреждение",
+                            MarkupMessage = new MarkupString("<h4>Нельзя сохранить отзыв, не поставив оценку</h4>"),
+                            Icon = new Icons.Regular.Size24.Warning(),
+                            IconColor = Color.Warning,
+                        },
+                        PrimaryAction = "Ок",
+                        DialogType = DialogType.Panel,
+                        Width = "550px"
+                    });
+            }
+        }
+    }
+    private string GetProLink(int? proId)
+    {
+        return proId != null ? $"/professional/{proId}" : "#";
+    }
+}

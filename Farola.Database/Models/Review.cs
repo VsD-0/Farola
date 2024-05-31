@@ -1,4 +1,7 @@
-﻿namespace Farola.Database.Models;
+﻿using System;
+using System.Collections.Generic;
+
+namespace Farola.Database.Models;
 
 /// <summary>
 /// Таблица отзывов клиентов
@@ -24,6 +27,11 @@ public partial class Review
     /// Текст отзыва
     /// </summary>
     public string? Text { get; set; }
+
+    /// <summary>
+    /// Дата добавления
+    /// </summary>
+    public DateTime DateAdded { get; set; }
 
     public virtual Statement Statement { get; set; } = null!;
 }

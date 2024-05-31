@@ -1,0 +1,121 @@
+﻿@page "/professional/{proId}"
+@using Farola.API
+@using Farola.Database.Models
+@using Farola.Domain.Models
+@using Farola.Infrastructure.Handlers
+@using System.IdentityModel.Tokens.Jwt
+@inject IProfessionalClient ProfessionalAPI
+@inject IStatementClient StatementAPI
+@inject IUserClient UserAPI
+@inject IJSRuntime JSRuntime
+
+<a onclick="history.back();">&lt; Вернуться к списку</a>
+@if (User != null)
+{
+    <PageTitle>@User.Surname @User.Name @User.Patronymic</PageTitle>
+    <FluentStack Orientation="Orientation.Vertical">
+        <FluentLabel Typo="Typography.H2">@User.Profession</FluentLabel>
+        <FluentLabel Typo="Typography.H4">@User.Specialization</FluentLabel>
+        <FluentStack Orientation="Orientation.Vertical">
+            <FluentPersona Image="@(new Icons.Filled.Size48.Person().ToDataUri(size: "40px", color: "white"))" ImageSize="80px"></FluentPersona>
+            <FluentStack Orientation="Orientation.Vertical">
+                <FluentLabel>@User.Surname @User.Name @User.Patronymic</FluentLabel>
+                <FluentLabel>Рейтинг: @(Rating ?? "Отсутствует")</FluentLabel>
+                <FluentLabel>Количество оценок: @(Reviews.Count() == 0 ? "0" : Reviews.Count())</FluentLabel>
+                @if (TokenStorage.Token is not null && role == "2")
+                {
+                    <FluentButton Disabled=@existStatement OnClick="@(p => SendStatement())">Подать заявку</FluentButton>
+                }
+            </FluentStack>
+            <FluentStack Orientation="Orientation.Vertical">
+                <FluentLabel>@User.Information</FluentLabel>
+            </FluentStack>
+            <FluentStack Orientation="Orientation.Vertical">
+                <FluentLabel>Отзывы:</FluentLabel>
+                @if (Reviews != null)
+                {
+                    if (Reviews.Count() != 0)
+                    {
+                        foreach (var item in Reviews)
+                        {
+                            <FluentCard>
+                                <FluentLabel>@item.Client.Surname @item.Client.Name @item.Client.Patronymic</FluentLabel>
+                                <FluentLabel>@item.Grade</FluentLabel>
+                                <FluentLabel>@item.Text</FluentLabel>
+                                <FluentLabel>@item.DateAdded</FluentLabel>
+                            </FluentCard>
+                        }
+                    }
+                    else
+                    {
+                        <FluentLabel>Отзывы отсутствуют</FluentLabel> 
+                    }
+                }
+                else
+                {
+                    <FluentProgressRing/>
+                }
+            </FluentStack>
+        </FluentStack>
+    </FluentStack>
+}
+else
+{
+    <PageTitle>Пользователь не найден</PageTitle>
+    <FluentLabel>Пользователь не найден</FluentLabel>
+}
+
+@code {
+    [Parameter]
+    public string proId { get; set; }
+
+    public UserDTO? User { get; set; }
+    public string? Rating { get; set; }
+    public List<ReviewViewModel> Reviews { get; set; }
+
+    private string? role = "2";
+    private string? clientId = "0";
+    private bool existStatement;
+
+    protected override async Task OnInitializedAsync()
+    {
+        User = await ProfessionalAPI.GetProfessional(int.Parse(proId));
+        if (User != null)
+        {
+            Reviews = (await ProfessionalAPI.GetReviewsByUser(User.Id)).ToList();
+            if (Reviews.Any())
+            {
+                float totalGrade = 0;
+                foreach (var review in Reviews)
+                {
+                    totalGrade += review.Grade;
+                }
+                Rating = (totalGrade / Reviews.Count).ToString();
+            }
+        }
+
+        if (TokenStorage.Token is not null)
+        {
+            var tokenHandler = new JwtSecurityTokenHandler();
+
+            // Получение токена
+            var jwtToken = tokenHandler.ReadJwtToken(TokenStorage.Token);
+
+            // Получение роли из токена
+            var roleClaim = jwtToken.Claims.FirstOrDefault(claim => claim.Type == "role");
+            role = roleClaim is not null ? roleClaim.Value : "2";
+
+            var idClaim = jwtToken.Claims.FirstOrDefault(claim => claim.Type == "nameid");
+            clientId = idClaim is not null ? idClaim.Value : "0";
+
+            if (role == "2")
+                existStatement = await StatementAPI.IsExistActive(int.Parse(clientId), User.Id);
+        }
+    }
+
+    private async Task SendStatement()
+    {
+        await StatementAPI.SendStatement(new ViewModels.SendStatement { ClientId = int.Parse(clientId), ProfessionalId = User.Id  });
+        existStatement = true;
+    }
+}

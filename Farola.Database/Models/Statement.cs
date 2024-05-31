@@ -1,4 +1,7 @@
-﻿namespace Farola.Database.Models;
+﻿using System;
+using System.Collections.Generic;
+
+namespace Farola.Database.Models;
 
 /// <summary>
 /// Таблица заявлений
@@ -34,6 +37,16 @@ public partial class Statement
     /// Дата закрытия заявки
     /// </summary>
     public DateTime? DateExpiration { get; set; }
+
+    /// <summary>
+    /// Оценка специалиста на заказ
+    /// </summary>
+    public float? Grade { get; set; }
+
+    /// <summary>
+    /// Комментарий специалиста
+    /// </summary>
+    public string? Comment { get; set; }
 
     public virtual User Client { get; set; } = null!;
 

@@ -1,8 +1,101 @@
-﻿@* To get access to all Fluent UI System icons, install the Microsoft.FluentUI.AspNetCore.Compoents.Icon package *@
+﻿@using Farola.API
+@using Farola.Database.Models
+@using Farola.Domain.Models
+@using Farola.Infrastructure.Handlers
+@using System.IdentityModel.Tokens.Jwt
+@using Farola.Infrastructure.Models
+@inject IProfessionalClient ProfessionalAPI
+@inject NavigationManager Navigation
+@* To get access to all Fluent UI System icons, install the Microsoft.FluentUI.AspNetCore.Compoents.Icon package *@
 @* See all the diffeent ways on how to use icons at https://www.fluentui-blazor.net/Icon *@
+
 <nav>
     <FluentNavMenu Width="250" Collapsible="true" Title="Custom navigation menu">
-        <FluentNavLink Href="/" Match="NavLinkMatch.All" Icon="@Icon.FromImageUrl("/images/home.svg")" IconColor="Color.Accent">Home</FluentNavLink>
-        <FluentNavLink Href="/professional/all" IconColor="Color.Accent">Специалисты</FluentNavLink>
+        <FluentNavLink Href="/" Match="NavLinkMatch.All" Icon="@Icon.FromImageUrl("/images/home.svg")" IconColor="Color.Accent">Главная</FluentNavLink>
+        <FluentNavLink Href="/professional/all/search" IconColor="Color.Accent">Специалисты</FluentNavLink>
+        @if (CurrentUser.Role == "1")
+        {
+            <FluentNavLink Href="@($"/statements/{CurrentUser.Id}")" IconColor="Color.Accent">Заявления</FluentNavLink>
+        }
+        @if (specs != null)
+        {
+            <FluentListbox TOption="SpecStat"
+            Label="Специализации"
+            Items="@specsList"
+            Id="spec-listbox"
+            Height="150%"
+            Multiple=false
+            OptionValue="@(s => s.Spec.Id.ToString())"
+            OptionText="@(s => s.Spec.Name)"
+            @bind-Value="@SelectedValue"
+            @bind-SelectedOption="@SelectedItem">
+                <OptionTemplate>
+                     @context.Spec.Name
+                     (@context.Count)
+                </OptionTemplate>
+            </FluentListbox>
+        }
+        else
+        {
+            <FluentProgressRing />
+        }
     </FluentNavMenu>
 </nav>
+
+<!--
+
+@if (TokenStorage.Token is not null && role == "1")
+{
+            <FluentButton OnClick="Stats">Заявки</FluentButton>
+}
+-->
+
+@code{
+    private List<SpecStat> specsList;
+    private List<Specialization> specs;
+    private List<int> countSpecs;
+    private string selectedValue;
+    private string SelectedValue 
+    {
+        get
+        {
+            return selectedValue;
+        }
+        set
+        {
+            selectedValue = value;
+            Navigation.NavigateTo($"/professional/{selectedValue}/search");
+        }
+
+    }
+    private SpecStat SelectedItem {get; set;}
+
+    private string? role = "2";
+    private string? userId = "0";
+
+    protected override async Task OnInitializedAsync()
+    {
+        specs = (await ProfessionalAPI.GetSpecializations()).ToList();
+        specsList = (await ProfessionalAPI.GetSpecStats()).ToList();
+
+        if (TokenStorage.Token is not null)
+        {
+            var tokenHandler = new JwtSecurityTokenHandler();
+
+            // Получение токена
+            var jwtToken = tokenHandler.ReadJwtToken(TokenStorage.Token);
+
+            // Получение роли из токена
+            var roleClaim = jwtToken.Claims.FirstOrDefault(claim => claim.Type == "role");
+            role = roleClaim is not null ? roleClaim.Value : "2";
+
+            var idClaim = jwtToken.Claims.FirstOrDefault(claim => claim.Type == "nameid");
+            userId = idClaim is not null ? idClaim.Value : "0";
+        }
+    }
+
+    private void FindBySpec()
+    {
+        Navigation.NavigateTo($"/professional/{SelectedValue}/search");
+    }
+}

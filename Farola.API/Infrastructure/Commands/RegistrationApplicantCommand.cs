@@ -96,7 +96,9 @@ namespace Farola.API.Infrastructure.Commands
             return new UserDTO
             {
                 Id = newUser.Id,
+                RoleId = newUser.RoleId,
                 Surname = newUser.Surname,
+                Patronymic = newUser.Patronymic,
                 Name = newUser.Name,
                 PhoneNumber = newUser.PhoneNumber,
                 Email = newUser.Email,

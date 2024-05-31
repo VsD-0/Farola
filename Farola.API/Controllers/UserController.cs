@@ -31,7 +31,6 @@ namespace Farola.API.Controllers
         /// <param name="id">Id пользователя</param>
         /// <returns>Пользователь</returns>
         [HttpGet("{id}")]
-        [Authorize]
         public async Task<IActionResult> GetUserById(int id)
         {
             var user = await _mediator.Send(new GetUserByIdQuerie { Id = id });

@@ -8,6 +8,11 @@
         public int Id { get; set; }
 
         /// <summary>
+        /// Номер роли
+        /// </summary>
+        public int RoleId { get; set; }
+
+        /// <summary>
         /// Фамилия
         /// </summary>
         public string Surname { get; set; } = null!;
@@ -16,6 +21,11 @@
         /// Имя
         /// </summary>
         public string Name { get; set; } = null!;
+
+        /// <summary>
+        /// Отчество
+        /// </summary>
+        public string? Patronymic { get; set; }
 
         /// <summary>
         /// Номер телефона

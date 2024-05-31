@@ -1,45 +1,88 @@
-﻿@page "/user/signin"
-@using Farola.API
+﻿@using Farola.API
 @using Farola.Domain.Models
+@using Farola.Infrastructure.Handlers
+@using Farola.Infrastructure.Models
 @using Farola.ViewModels
 @using Refit
+@using System.IdentityModel.Tokens.Jwt
 
 @inject IUserClient UserAPI
 @inject IJSRuntime JsRuntime
 @inject NavigationManager Navigation
 
-<FluentStack HorizontalAlignment="HorizontalAlignment.Center" VerticalAlignment="VerticalAlignment.Center">
-    <FluentCard Width="400px" Height="400px">
-        <FluentLabel>@error_general</FluentLabel>
-        <FluentTextField @bind-Value=email TextFieldType="TextFieldType.Email" Spellcheck="true" Placeholder="Введите эл. почту" Label="Эл. почта"/>
-        <FluentLabel>@error_email</FluentLabel>
-        <FluentTextField @bind-Value=password TextFieldType="TextFieldType.Password" Placeholder="Введите пароль" Label="Пароль"/>
-        <FluentLabel>@error_password</FluentLabel>
-        <FluentButton OnClick="Login">Войти</FluentButton>
-    </FluentCard>
-</FluentStack>
+@page "/user/signin"
+
+<FluentLayout Style="align-items: center; align-content:center" >
+    <FluentGrid Justify="JustifyContent.Center">
+        <FluentGridItem xxl="12" xl="12" lg="12" md="12" sm="12" xs="12" Justify="JustifyContent.Center">
+            <FluentLabel Typo="Typography.H2">Авторизация</FluentLabel>
+        </FluentGridItem>
+        <FluentGridItem xxl="12" xl="12" lg="12" md="12" sm="12" xs="12" Justify="JustifyContent.Center">
+            <FluentCard Width="400px" Height="400px">
+                <FluentGrid>
+                    <FluentGridItem xxl="12" xl="12" lg="12" md="12" sm="12" xs="12" Justify="JustifyContent.Center">
+                        <FluentLabel>@Error_general</FluentLabel>
+                    </FluentGridItem>
+                    <FluentGridItem xxl="12" xl="12" lg="12" md="12" sm="12" xs="12" Justify="JustifyContent.Center">
+                        <FluentTextField @bind-Value=Email TextFieldType="TextFieldType.Email" Spellcheck="true" Placeholder="Введите эл. почту" Label="Эл. почта" />
+                    </FluentGridItem>
+                    <FluentGridItem xxl="12" xl="12" lg="12" md="12" sm="12" xs="12" Justify="JustifyContent.Center">
+                        <FluentLabel>@Error_email</FluentLabel>
+                    </FluentGridItem>
+                    <FluentGridItem xxl="12" xl="12" lg="12" md="12" sm="12" xs="12" Justify="JustifyContent.Center">
+                        <FluentTextField @bind-Value=Password TextFieldType="TextFieldType.Password" Placeholder="Введите пароль" Label="Пароль" />
+                    </FluentGridItem>
+                    <FluentGridItem xxl="12" xl="12" lg="12" md="12" sm="12" xs="12" Justify="JustifyContent.Center">
+                        <FluentLabel>@Error_password</FluentLabel>
+                    </FluentGridItem>
+                    <FluentGridItem xxl="12" xl="12" lg="12" md="12" sm="12" xs="12" Justify="JustifyContent.Center">
+                        <FluentButton OnClick="Login">Войти</FluentButton>
+                    </FluentGridItem>
+                </FluentGrid>
+            </FluentCard>
+        </FluentGridItem>
+    </FluentGrid>
+</FluentLayout>
 
 @code {
-    private string email;
-    private string password;
-    private string error_email;
-    private string error_general;
-    private string error_password;
+    private string Email { get; set; }
+    private string Password { get; set; }
+    private string Error_email { get; set; }
+    private string Error_general { get; set; }
+    private string Error_password;
+
+    private string? role = "2";
+    private string? clientId = "0";
 
     private async void Login()
     {
         try
         {
-            await UserAPI.SignIn(new AuthModel
+            string token = await UserAPI.SignIn(new AuthModel
             {
-                Email = email,
-                Password = password
+                    Email = Email,
+                    Password = Password
             });
-            Navigation.NavigateTo("/professional/all");
+            TokenStorage.Token = token;
+            var tokenHandler = new JwtSecurityTokenHandler();
+
+            var jwtToken = tokenHandler.ReadJwtToken(TokenStorage.Token);
+
+            var roleClaim = jwtToken.Claims.FirstOrDefault(claim => claim.Type == "role");
+            role = roleClaim is not null ? roleClaim.Value : "2";
+
+            var idClaim = jwtToken.Claims.FirstOrDefault(claim => claim.Type == "nameid");
+            clientId = idClaim is not null ? idClaim.Value : "0";
+            CurrentUser.Id = clientId;
+            CurrentUser.Role = role;
+            var user = await UserAPI.GetUserById(int.Parse(clientId));
+            CurrentUser.UserName = $"{user.Surname} {user.Name} {user.Patronymic}";
+
+            Navigation.NavigateTo("/");
         }
         catch (ValidationApiException ex)
         {
-            error_email = error_password = error_general = "";
+            Error_email = Error_password = Error_general = "";
             var errors = ex.Content is not null ? ex.Content.Errors : new();
 
             foreach (var item in errors.Keys)
@@ -47,13 +90,13 @@
                 switch (item)
                 {
                     case "Email":
-                        error_email = errors[item].First();
+                        Error_email = errors[item].First();
                         break;
                     case "Password":
-                        error_password = errors[item].First();
+                        Error_password = errors[item].First();
                         break;
                     case "General":
-                        error_general = errors[item].First();
+                        Error_general = errors[item].First();
                         break;
                     default:
                         await JsRuntime.InvokeVoidAsync("alert", ex);

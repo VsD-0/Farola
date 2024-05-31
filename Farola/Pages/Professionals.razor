@@ -1,58 +1,85 @@
-﻿@page "/professional/all"
+﻿@page "/professional/{specialization}/{search}"
 @using Farola.API
 @using Farola.Database.Models
 @using Farola.Domain.Models
+@using Farola.Infrastructure.Handlers
+@using System.IdentityModel.Tokens.Jwt
+@using System.Security.Claims
 @inject HttpClient Http
 @inject IProfessionalClient ProfessionalAPI
+@inject IStatementClient StatementAPI
 
 <PageTitle>Специалисты</PageTitle>
 
 <FluentStack Orientation="Orientation.Vertical">
 <h1>Специалисты</h1>
 
-@if (pros == null)
+@if (pros != null)
 {
-    <p><em>Loading...</em></p>
-}
+    @if (pros?.Items?.Count == 0)
+    {
+        <FluentStack Orientation="Orientation.Vertical">
+            <FluentStack Orientation="Orientation.Horizontal">
+                <FluentSearch @bind-Value="@profession" Placeholder="Введите необходимого специалиста" Label="Профессия" />
+                <FluentButton OnClick="Search">Найти</FluentButton>
+            </FluentStack>
+        <p><em>Специалисты отсутствуют</em></p>
+        </FluentStack>
+    }
+    else
+    {
+        <FluentStack Orientation="Orientation.Vertical">
+            <FluentStack Orientation="Orientation.Horizontal">
+                <FluentSearch @bind-Value="@profession" Placeholder="Введите необходимого специалиста" Label="Профессия" />
+                <FluentButton OnClick="Search">Найти</FluentButton>
+            </FluentStack>
+            <FluentGrid AdaptiveRendering=true Justify="JustifyContent.Center">
+            @foreach (var item in pros?.Items)
+            {
+                    <FluentGridItem xxl="3" xl="6" lg="6" md="12" sm="12" xs="12" Justify="JustifyContent.Center">
+                    <FluentCard>
+                        <FluentGrid Spacing="1">
+                            <FluentGridItem xxl="2" xl="2" lg="2" md="2" sm="2" xs="2" Justify="JustifyContent.FlexStart">
+                                <FluentPersona Image="@(new Icons.Filled.Size48.Person().ToDataUri(size: "60px", color: "white"))" ImageSize="80px"></FluentPersona>
+                            </FluentGridItem>
+                            <FluentGridItem xxl="10" xl="10" lg="10" md="10" sm="10" xs="10" Justify="JustifyContent.FlexStart">
+                                <FluentStack Orientation="Orientation.Vertical">
+                                    <FluentNavLink Href="@(GetProLink(item.Id))" IconColor="Color.Accent" Style="font-size: 24px; font-weight: bold">@item.Profession</FluentNavLink>
+                                    <FluentLabel Typo="Typography.Body">@item.Specialization</FluentLabel>
+                                </FluentStack>
+                            </FluentGridItem>
+                            <FluentGridItem xxl="12" xl="12" lg="12" md="12" sm="12" xs="12" Justify="JustifyContent.FlexStart">
+                                <FluentLabel Typo="Typography.Body">@item.Surname @item.Name</FluentLabel>
+                            </FluentGridItem>
+                            <FluentGridItem xxl="12" xl="12" lg="12" md="12" sm="12" xs="12" Justify="JustifyContent.FlexStart">
+                                <FluentLabel Typo="Typography.Body">@item.Email</FluentLabel>
+                            </FluentGridItem>
+                            @if(item.Area != null)
+                            {
+                                <FluentGridItem xxl="12" xl="12" lg="12" md="12" sm="12" xs="12" Justify="JustifyContent.FlexStart">
+                                    <FluentLabel Typo="Typography.Body">@item.Area</FluentLabel>
+                                </FluentGridItem>
+                            }
+                            <FluentGridItem xxl="12" xl="12" lg="12" md="12" sm="12" xs="12" Justify="JustifyContent.FlexStart">
+                                <FluentLabel Typo="Typography.Body">@item.Information</FluentLabel>
+                            </FluentGridItem>
+                        </FluentGrid>
+                    </FluentCard>
+                </FluentGridItem>
+            }
+            </FluentGrid>
+        </FluentStack>
+
+        <FluentStack Orientation="Orientation.Horizontal">
+            <FluentButton OnClick="Preview">Назад</FluentButton>
+            <FluentLabel>@pros.Pagination.CurrentPage</FluentLabel>
+            <FluentButton OnClick="Next">Вперёд</FluentButton>
+        </FluentStack>   
+        }
+    }
 else
 {
-    <FluentStack Orientation="Orientation.Vertical">
-        <FluentStack Orientation="Orientation.Horizontal">
-            <FluentSearch @bind-Value="@profession" Placeholder="Введите необходимого специалиста" Label="Профессия" />
-            <FluentCombobox Label="Специализация"
-                            Items="@specOptions"
-                            TOption="Option<string>"
-                            OptionText="@(s => s.Text)" 
-                            OptionValue="@(s => s.Value)"
-                            OptionSelected="@(s => s.Selected)"
-                            @bind-SelectedOption = "@spec" />
-            <FluentButton OnClick="Search">Найти</FluentButton>
-        </FluentStack>
-        @foreach (var item in pros.Items)
-        {
-            <FluentCard Height="175px">
-                <FluentStack VerticalAlignment="VerticalAlignment.Center">
-                    <FluentPersona Image="@(new Icons.Filled.Size48.Person().ToDataUri(size: "40px", color: "white"))" ImageSize="80px"></FluentPersona>
-                    <FluentStack Orientation="Orientation.Vertical" VerticalGap="2"> 
-                        <FluentLabel Typo="Typography.H3">@item.Profession</FluentLabel>
-                        <FluentLabel Typo="Typography.Body">@item.Specialization</FluentLabel>
-                        <FluentSpacer/>
-                        <FluentLabel Typo="Typography.Body">@item.Surname @item.Name</FluentLabel>
-                        <FluentLabel Typo="Typography.Body">@item.Email</FluentLabel>
-                        <FluentSpacer />
-                        <FluentLabel Typo="Typography.Body">@item.Area</FluentLabel>
-                    </FluentStack>
-                    <FluentLabel Typo="Typography.Body">@item.Information</FluentLabel>
-                </FluentStack>
-            </FluentCard>
-        }
-    </FluentStack>
-
-    <FluentStack Orientation="Orientation.Horizontal">
-        <FluentButton OnClick="Preview">Назад</FluentButton>
-        <FluentLabel>@pros.Pagination.CurrentPage</FluentLabel>
-        <FluentButton OnClick="Next">Вперёд</FluentButton>
-    </FluentStack>   
+    <FluentProgressRing />
 }
 </FluentStack>
 
@@ -62,13 +89,26 @@ else
     private PaginatedResult<UserDTO> pros;
     private IEnumerable<Specialization> specs;
     private List<Option<string>>? specOptions;
+    private Option<string>? spec = null;
     private int pageNumber = 1;
     private string? profession = null;
-    private Option<string>? spec = null;
+
+
+
+    [Parameter]
+    public string search { get; set; }
+    [Parameter]
+    public string Specialization { get; set; }
 
     protected override async Task OnInitializedAsync()
     {
-        pros = await ProfessionalAPI.GetProfessionals(pageNumber, 2, profession, spec?.Value);
+        if (search != "search")
+            profession = search;
+        if (Specialization != "all")
+            pros = await ProfessionalAPI.GetProfessionals(1, 4, profession, Specialization);
+        else
+            pros = await ProfessionalAPI.GetProfessionals(1, 4, profession, null);
+
         specs = await ProfessionalAPI.GetSpecializations();
 
         specOptions = specs?
@@ -86,9 +126,25 @@ else
         });
     }
 
+    protected override async Task OnParametersSetAsync()
+    {
+        if (search != "search")
+            profession = search;
+
+        if (Specialization != "all")
+            pros = await ProfessionalAPI.GetProfessionals(1, 4, profession, Specialization);
+        else
+            pros = await ProfessionalAPI.GetProfessionals(1, 4, profession, null);
+    }
+
+    private string GetProLink(int? proId)
+    {
+        return proId != null ? $"/professional/{proId}" : "#";
+    }
+
     private async Task Search()
     {
-        pros = await ProfessionalAPI.GetProfessionals(pageNumber, 2, profession, spec?.Value);
+        pros = await ProfessionalAPI.GetProfessionals(1, 4, profession, Specialization);
     }
 
     private async Task Preview()
@@ -96,7 +152,7 @@ else
         if (pros.Pagination.CurrentPage > 1)
         {
             --pageNumber;
-            pros = await ProfessionalAPI.GetProfessionals(pageNumber, 2, profession, spec?.Value);
+            pros = await ProfessionalAPI.GetProfessionals(pageNumber, 4, profession, spec?.Value);
         }
     }
 
@@ -105,7 +161,7 @@ else
         if (pros.Pagination.TotalPages != pros.Pagination.CurrentPage)
         {
             ++pageNumber;
-            pros = await ProfessionalAPI.GetProfessionals(pageNumber, 2, profession, spec?.Value);
+            pros = await ProfessionalAPI.GetProfessionals(pageNumber, 4, profession, spec?.Value);
         }
     }
 }
