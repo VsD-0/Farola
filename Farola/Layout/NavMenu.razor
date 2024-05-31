@@ -11,7 +11,7 @@
 
 <nav>
     <FluentNavMenu Width="250" Collapsible="true" Title="Custom navigation menu">
-        <FluentNavLink Href="/" Match="NavLinkMatch.All" Icon="@Icon.FromImageUrl("/images/home.svg")" IconColor="Color.Accent">Home</FluentNavLink>
+        <FluentNavLink Href="/" Match="NavLinkMatch.All" Icon="@Icon.FromImageUrl("/images/home.svg")" IconColor="Color.Accent">Главная</FluentNavLink>
         <FluentNavLink Href="/professional/all/search" IconColor="Color.Accent">Специалисты</FluentNavLink>
         @if (CurrentUser.Role == "1")
         {
@@ -23,7 +23,7 @@
             Label="Специализации"
             Items="@specsList"
             Id="spec-listbox"
-            Height="150px"
+            Height="150%"
             Multiple=false
             OptionValue="@(s => s.Spec.Id.ToString())"
             OptionText="@(s => s.Spec.Name)"
@@ -31,7 +31,7 @@
             @bind-SelectedOption="@SelectedItem">
                 <OptionTemplate>
                      @context.Spec.Name
-                     @context.Count
+                     (@context.Count)
                 </OptionTemplate>
             </FluentListbox>
         }

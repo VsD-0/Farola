@@ -14,30 +14,18 @@
     <FluentGrid id="main" Style="margin: 3px 3px 15px 3px">
         <!--Название сайта-->
         <FluentGridItem Id="main-title" xxl="12" xl="12" lg="12" md="12" sm="12" xs="12">
-            <FluentLabel Id="title-site" Typo="Typography.H1" Alignment="HorizontalAlignment.Center" Weight="FontWeight.Bold" >
+            <FluentLabel Id="title-site" Typo="Typography.HeroTitle" Alignment="HorizontalAlignment.Center" Weight="FontWeight.Bold" >
                 Farola
             </FluentLabel>
         </FluentGridItem>
-        <!--Подназвание сайта-->
-        <FluentGridItem xxl="12" xl="12" lg="12" md="12" sm="12" xs="12">
-            <FluentLabel Id="subtitle-site" Typo="Typography.H3" Alignment="HorizontalAlignment.Center" Weight="FontWeight.Bold">
-                Сервис поиска специалистов
-            </FluentLabel>
-        </FluentGridItem >
         <!--Краткое описание сайта-->
         <FluentGridItem xxl="12" xl="12" lg="12" md="12" sm="12" xs="12">
-            <FluentLabel Id="description-site" Typo="Typography.Body" Alignment="HorizontalAlignment.Center" Weight="FontWeight.Normal" >
-                Здесь будет описание сайта, пока что здесь текст "заглушка"
-                Lorem ipsum dolor sit amet, consectetur adipiscing elit. Quisque consequat in sapien nec mollis. 
-                Aliquam ullamcorper nisi nisi, sed finibus purus finibus et. Duis accumsan mauris vel velit sagittis, 
-                vitae dapibus est ultricies. Pellentesque accumsan turpis sed nisl efficitur, eget eleifend enim feugiat. 
-                Suspendisse potenti. Pellentesque habitant morbi tristique senectus et netus et malesuada fames ac turpis 
-                egestas. Vivamus cursus diam diam, nec pharetra risus eleifend in. Maecenas at eros non nisl rhoncus 
-                euismod vitae at ex. Praesent placerat, ligula et placerat porttitor, urna quam varius est, vel varius 
-                neque nunc tincidunt augue. Sed ultricies justo eget dapibus viverra. Praesent eu tellus fringilla, 
-                tincidunt augue ac, ornare augue. Nunc a maximus lorem. Maecenas sem sapien, pulvinar vel eleifend a, 
-                dapibus in ante. Quisque vitae nunc porttitor, aliquam tortor ac, tempus dolor. Phasellus consequat 
-                dictum nibh, vel ultrices nisi mollis eu.
+            <FluentLabel Id="description-site" Typo="Typography.Header" Alignment="HorizontalAlignment.Center" Weight="FontWeight.Normal" Style="margin: 0% 10%">
+                Farola – это платформа, созданная для решения проблемы, с которой сталкиваются как клиенты, 
+                так и специалисты. Клиенты часто испытывают трудности при поиске квалифицированных специалистов, 
+                а специалисты тратят драгоценное время на поиск новых клиентов. Farola устраняет эти препятствия, 
+                создавая единое пространство, где клиенты могут легко найти специалистов, отвечающих их потребностям, 
+                а специалисты могут расширить свою клиентскую базу.
             </FluentLabel>
         </FluentGridItem>
     </FluentGrid>
@@ -63,7 +51,7 @@
             {
                 @foreach (var item in specstats)
                 {
-                    <FluentGridItem xxl="2" xl="2" lg="3" md="4" sm="6" xs="12" Justify="JustifyContent.Center">
+                    <FluentGridItem xxl="2" xl="3" lg="3" md="4" sm="6" xs="12" Justify="JustifyContent.Center">
                         <FluentCard Width="290px" Height="210px" AreaRestricted="true" Style="padding: 3px 3px 3px 3px">
                             <FluentGrid Style="height: 210px">
                                 <FluentGridItem xxl="12" xl="12" lg="12" md="12" sm="12" xs="12" Style="height: 100%;" Justify="JustifyContent.Center">
@@ -123,9 +111,10 @@
                                         <FluentGridItem xxl="6" xl="6" lg="6" md="6" sm="6" xs="6">
                                             <FluentStack Orientation="Orientation.Horizontal">
                                                 @item.Grade
-                                                @for (int i = 1; i < item.Grade; i++)
+                                                @for (int i = 0; i < item.Grade; i++)
                                                 {
                                                     <FluentIcon Value="@(new Icons.Filled.Size24.Star())" Title="Star" Width="14px"  Color="Color.Accent" />
+                                                    if (i == 3) break;
                                                 }
                                                 @if (item.Grade == 5)
                                                 {

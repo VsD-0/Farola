@@ -1,21 +1,34 @@
-﻿@using Farola.Infrastructure.Models
+﻿@using Farola.Infrastructure.Handlers
+@using Farola.Infrastructure.Models
 @inherits LayoutComponentBase
+@inject NavigationManager Navigation
+<FluentDialogProvider />
+<FluentToastProvider />
+
 <FluentLayout>
     <FluentHeader>
         Farola
         <FluentStack HorizontalAlignment="HorizontalAlignment.End">  
-            <FluentLabel Color="Color.Fill" Typo="Typography.H4">@CurrentUser.UserName</FluentLabel>
+            <FluentLabel Color="Color.Fill" Typo="Typography.H4">@(CurrentUser.Role == "1" ? "Специалист " : "") @CurrentUser.UserName</FluentLabel>
             <FluentButton id="auth_menu" IconStart="@(new Icons.Filled.Size48.Person())" Appearance="Appearance.Accent" @onclick="@(() => open = !open)">
             </FluentButton>
             <FluentMenu Anchor="auth_menu" @bind-Open="open" VerticalThreshold="170">
                 <FluentNavMenu Style="color: black" Width="250">
-                <FluentNavLink Href="/user/signin">Войти</FluentNavLink>
-                    <FluentNavGroup Title="Зарегистрироваться">
-                        <ChildContent>
+                    @if (CurrentUser.Id == null)
+                    {
+                        <FluentNavLink Href="/user/signin">Войти</FluentNavLink>
+                        <FluentNavGroup Title="Зарегистрироваться">
+                            <ChildContent>
                             <FluentNavLink Href="/applicant/signup" IconColor="Color.Accent">Пользователь</FluentNavLink>
                             <FluentNavLink Href="/professional/signup" IconColor="Color.Accent">Специалист</FluentNavLink>
                         </ChildContent>
-                    </FluentNavGroup>
+                        </FluentNavGroup>
+                    }
+                    else
+                    {
+                        <FluentNavLink Href="@($"/statements/{CurrentUser.Id}")" IconColor="Color.Accent">Заявления</FluentNavLink>
+                        <FluentMenuItem OnClick="SignOut">Выйти</FluentMenuItem>
+                    }
                 </FluentNavMenu>
             </FluentMenu>
         </FluentStack>
@@ -42,4 +55,15 @@
 @code {
     bool open = false;
     bool expanded = true;
+
+    private void SignOut()
+    {
+        CurrentUser.Id = null;
+        CurrentUser.UserName = null;
+        CurrentUser.Role = null;
+
+        TokenStorage.Token = null;
+
+        Navigation.NavigateTo("/");
+    }
 }

@@ -33,24 +33,41 @@
                 <FluentSearch @bind-Value="@profession" Placeholder="Введите необходимого специалиста" Label="Профессия" />
                 <FluentButton OnClick="Search">Найти</FluentButton>
             </FluentStack>
+            <FluentGrid AdaptiveRendering=true Justify="JustifyContent.Center">
             @foreach (var item in pros?.Items)
             {
-                <FluentCard Height="175px">
-                    <FluentStack VerticalAlignment="VerticalAlignment.Center">
-                        <FluentPersona Image="@(new Icons.Filled.Size48.Person().ToDataUri(size: "40px", color: "white"))" ImageSize="80px"></FluentPersona>
-                        <FluentStack Orientation="Orientation.Vertical" VerticalGap="2">
-                            <FluentNavLink Href="@(GetProLink(item.Id))" IconColor="Color.Accent" Style="font-size: 24px; font-weight: bold">@item.Profession</FluentNavLink>
-                            <FluentLabel Typo="Typography.Body">@item.Specialization</FluentLabel>
-                            <FluentSpacer/>
-                            <FluentLabel Typo="Typography.Body">@item.Surname @item.Name</FluentLabel>
-                            <FluentLabel Typo="Typography.Body">@item.Email</FluentLabel>
-                            <FluentSpacer />
-                            <FluentLabel Typo="Typography.Body">@item.Area</FluentLabel>
-                        </FluentStack>
-                        <FluentLabel Typo="Typography.Body">@item.Information</FluentLabel>
-                    </FluentStack>
-                </FluentCard>
+                    <FluentGridItem xxl="3" xl="6" lg="6" md="12" sm="12" xs="12" Justify="JustifyContent.Center">
+                    <FluentCard>
+                        <FluentGrid Spacing="1">
+                            <FluentGridItem xxl="2" xl="2" lg="2" md="2" sm="2" xs="2" Justify="JustifyContent.FlexStart">
+                                <FluentPersona Image="@(new Icons.Filled.Size48.Person().ToDataUri(size: "60px", color: "white"))" ImageSize="80px"></FluentPersona>
+                            </FluentGridItem>
+                            <FluentGridItem xxl="10" xl="10" lg="10" md="10" sm="10" xs="10" Justify="JustifyContent.FlexStart">
+                                <FluentStack Orientation="Orientation.Vertical">
+                                    <FluentNavLink Href="@(GetProLink(item.Id))" IconColor="Color.Accent" Style="font-size: 24px; font-weight: bold">@item.Profession</FluentNavLink>
+                                    <FluentLabel Typo="Typography.Body">@item.Specialization</FluentLabel>
+                                </FluentStack>
+                            </FluentGridItem>
+                            <FluentGridItem xxl="12" xl="12" lg="12" md="12" sm="12" xs="12" Justify="JustifyContent.FlexStart">
+                                <FluentLabel Typo="Typography.Body">@item.Surname @item.Name</FluentLabel>
+                            </FluentGridItem>
+                            <FluentGridItem xxl="12" xl="12" lg="12" md="12" sm="12" xs="12" Justify="JustifyContent.FlexStart">
+                                <FluentLabel Typo="Typography.Body">@item.Email</FluentLabel>
+                            </FluentGridItem>
+                            @if(item.Area != null)
+                            {
+                                <FluentGridItem xxl="12" xl="12" lg="12" md="12" sm="12" xs="12" Justify="JustifyContent.FlexStart">
+                                    <FluentLabel Typo="Typography.Body">@item.Area</FluentLabel>
+                                </FluentGridItem>
+                            }
+                            <FluentGridItem xxl="12" xl="12" lg="12" md="12" sm="12" xs="12" Justify="JustifyContent.FlexStart">
+                                <FluentLabel Typo="Typography.Body">@item.Information</FluentLabel>
+                            </FluentGridItem>
+                        </FluentGrid>
+                    </FluentCard>
+                </FluentGridItem>
             }
+            </FluentGrid>
         </FluentStack>
 
         <FluentStack Orientation="Orientation.Horizontal">
@@ -88,9 +105,9 @@ else
         if (search != "search")
             profession = search;
         if (Specialization != "all")
-            pros = await ProfessionalAPI.GetProfessionals(pageNumber, 2, profession, Specialization);
+            pros = await ProfessionalAPI.GetProfessionals(1, 4, profession, Specialization);
         else
-            pros = await ProfessionalAPI.GetProfessionals(pageNumber, 2, profession, null);
+            pros = await ProfessionalAPI.GetProfessionals(1, 4, profession, null);
 
         specs = await ProfessionalAPI.GetSpecializations();
 
@@ -115,9 +132,9 @@ else
             profession = search;
 
         if (Specialization != "all")
-            pros = await ProfessionalAPI.GetProfessionals(pageNumber, 2, profession, Specialization);
+            pros = await ProfessionalAPI.GetProfessionals(1, 4, profession, Specialization);
         else
-            pros = await ProfessionalAPI.GetProfessionals(pageNumber, 2, profession, null);
+            pros = await ProfessionalAPI.GetProfessionals(1, 4, profession, null);
     }
 
     private string GetProLink(int? proId)
@@ -127,7 +144,7 @@ else
 
     private async Task Search()
     {
-        pros = await ProfessionalAPI.GetProfessionals(pageNumber, 2, profession, Specialization);
+        pros = await ProfessionalAPI.GetProfessionals(1, 4, profession, Specialization);
     }
 
     private async Task Preview()
@@ -135,7 +152,7 @@ else
         if (pros.Pagination.CurrentPage > 1)
         {
             --pageNumber;
-            pros = await ProfessionalAPI.GetProfessionals(pageNumber, 2, profession, spec?.Value);
+            pros = await ProfessionalAPI.GetProfessionals(pageNumber, 4, profession, spec?.Value);
         }
     }
 
@@ -144,7 +161,7 @@ else
         if (pros.Pagination.TotalPages != pros.Pagination.CurrentPage)
         {
             ++pageNumber;
-            pros = await ProfessionalAPI.GetProfessionals(pageNumber, 2, profession, spec?.Value);
+            pros = await ProfessionalAPI.GetProfessionals(pageNumber, 4, profession, spec?.Value);
         }
     }
 }

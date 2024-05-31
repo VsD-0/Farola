@@ -39,8 +39,10 @@
                         foreach (var item in Reviews)
                         {
                             <FluentCard>
+                                <FluentLabel>@item.Client.Surname @item.Client.Name @item.Client.Patronymic</FluentLabel>
                                 <FluentLabel>@item.Grade</FluentLabel>
                                 <FluentLabel>@item.Text</FluentLabel>
+                                <FluentLabel>@item.DateAdded</FluentLabel>
                             </FluentCard>
                         }
                     }
@@ -69,7 +71,7 @@ else
 
     public UserDTO? User { get; set; }
     public string? Rating { get; set; }
-    public List<Review> Reviews { get; set; }
+    public List<ReviewViewModel> Reviews { get; set; }
 
     private string? role = "2";
     private string? clientId = "0";

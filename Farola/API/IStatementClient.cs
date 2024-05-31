@@ -10,6 +10,9 @@ namespace Farola.API
         [Get("/Statement/GetStatementsById/{proId}")]
         Task<IEnumerable<StatementsViewModel>> GetStatementsById(int proId);
 
+        [Get("/Statement/GetStatementsByClientId/{clientId}")]
+        Task<IEnumerable<StatementsViewModel>> GetStatementsByClientId(int clientId);
+
         [Post("/Statement/Send")]
         Task<Statement> SendStatement(SendStatement request);
 
@@ -19,13 +22,16 @@ namespace Farola.API
         [Post("/Statement/UpdateStatus/{statementId}/{newStatus}")]
         Task UpdateStatus(int statementId, int newStatus);
 
-        [Post("/Statement/SaveGrade/{statementId}/{grade}")]
-        Task SaveGrade(int statementId, float? grade);
+        [Post("/Statement/SaveGrade/{statementId}/{grade}/{role}")]
+        Task SaveGrade(int statementId, float? grade, string role);
 
-        [Post("/Statement/SaveComment/{statementId}/{comment}")]
-        Task SaveComment(int statementId, string comment);
+        [Post("/Statement/SaveComment/{statementId}/{comment}/{role}")]
+        Task SaveComment(int statementId, string comment, string role);
 
         [Get("/Statement/IsExistActive/{id}/{proId}")]
         Task<bool> IsExistActive(int id, int proId);
+
+        [Get("/Statement/IsExistGrade/{statementId}")]
+        Task<bool> IsExistGrade(int statementId);
     }
 }

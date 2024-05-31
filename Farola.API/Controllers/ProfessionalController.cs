@@ -70,8 +70,14 @@ namespace Farola.API.Controllers
                 s => s.Id,
                 (r, s) => new {Review = r, Statement = s})
                 .Where(x => x.Statement.ProfessionalId == userId)
-                .Select(x => x.Review)
-                .AsEnumerable());
+                .Select(x => new ReviewViewModel
+                {
+                    Client = _context.Users.FirstOrDefault(u => u.Id == x.Statement.ClientId),
+                    Professional = _context.Users.FirstOrDefault(u => u.Id == x.Statement.ProfessionalId),
+                    DateAdded = x.Review.DateAdded,
+                    Grade = x.Review.Grade,
+                    Text = x.Review.Text
+                }).AsEnumerable());
         }
 
         [HttpGet("GetReviewBestPro")]
