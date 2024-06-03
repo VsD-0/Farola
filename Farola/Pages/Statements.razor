@@ -7,6 +7,7 @@
 @inject IStatementClient StatementAPI
 @inject IDialogService DialogService
 @inject IToastService ToastService
+@inject IJSRuntime JsRuntime
 
 
 <FluentLayout>
@@ -217,12 +218,12 @@
 
     protected override async Task OnInitializedAsync()
     {
-        if (TokenStorage.Token is not null)
+        if (!String.IsNullOrEmpty(await JsRuntime.InvokeAsync<string>("getToken")))
         {
             var tokenHandler = new JwtSecurityTokenHandler();
 
             // Получение токена
-            var jwtToken = tokenHandler.ReadJwtToken(TokenStorage.Token);
+            var jwtToken = tokenHandler.ReadJwtToken(await JsRuntime.InvokeAsync<string>("getToken"));
 
             // Получение роли из токена
             var roleClaim = jwtToken.Claims.FirstOrDefault(claim => claim.Type == "role");

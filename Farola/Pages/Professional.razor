@@ -22,7 +22,7 @@
                 <FluentLabel>@User.Surname @User.Name @User.Patronymic</FluentLabel>
                 <FluentLabel>Рейтинг: @(Rating ?? "Отсутствует")</FluentLabel>
                 <FluentLabel>Количество оценок: @(Reviews.Count() == 0 ? "0" : Reviews.Count())</FluentLabel>
-                @if (TokenStorage.Token is not null && role == "2")
+                @if (JSRuntime.InvokeAsync<string>("getToken") != null && role == "2")
                 {
                     <FluentButton Disabled=@existStatement OnClick="@(p => SendStatement())">Подать заявку</FluentButton>
                 }
@@ -94,12 +94,12 @@ else
             }
         }
 
-        if (TokenStorage.Token is not null)
+        if (!String.IsNullOrEmpty(await JSRuntime.InvokeAsync<string>("getToken")))
         {
             var tokenHandler = new JwtSecurityTokenHandler();
 
             // Получение токена
-            var jwtToken = tokenHandler.ReadJwtToken(TokenStorage.Token);
+            var jwtToken = tokenHandler.ReadJwtToken(await JSRuntime.InvokeAsync<string>("getToken"));
 
             // Получение роли из токена
             var roleClaim = jwtToken.Claims.FirstOrDefault(claim => claim.Type == "role");

@@ -1,7 +1,12 @@
-﻿@using Farola.Infrastructure.Handlers
+﻿@using Farola.API
+@using Farola.Infrastructure.Handlers
 @using Farola.Infrastructure.Models
+@using System.IdentityModel.Tokens.Jwt
 @inherits LayoutComponentBase
 @inject NavigationManager Navigation
+@inject IJSRuntime JsRuntime
+@inject IUserClient UserAPI
+
 <FluentDialogProvider />
 <FluentToastProvider />
 
@@ -56,13 +61,35 @@
     bool open = false;
     bool expanded = true;
 
-    private void SignOut()
+    protected override async Task OnInitializedAsync()
+    {
+        if (!String.IsNullOrEmpty(await JsRuntime.InvokeAsync<string?>("getToken")))
+        {
+            TokenStorage.Token = await JsRuntime.InvokeAsync<string>("getToken");
+            var tokenHandler = new JwtSecurityTokenHandler();
+
+            var jwtToken = tokenHandler.ReadJwtToken(await JsRuntime.InvokeAsync<string>("getToken"));
+
+            var roleClaim = jwtToken.Claims.FirstOrDefault(claim => claim.Type == "role");
+            var role = roleClaim is not null ? roleClaim.Value : "2";
+
+            var idClaim = jwtToken.Claims.FirstOrDefault(claim => claim.Type == "nameid");
+            var clientId = idClaim is not null ? idClaim.Value : "0";
+            CurrentUser.Id = clientId;
+            CurrentUser.Role = role;
+            var user = await UserAPI.GetUserById(int.Parse(clientId));
+            CurrentUser.UserName = $"{user.Surname} {user.Name} {user.Patronymic}";
+        }
+    }
+
+    private async Task SignOut()
     {
         CurrentUser.Id = null;
         CurrentUser.UserName = null;
         CurrentUser.Role = null;
 
         TokenStorage.Token = null;
+        await JsRuntime.InvokeVoidAsync("setToken", null);
 
         Navigation.NavigateTo("/");
     }
