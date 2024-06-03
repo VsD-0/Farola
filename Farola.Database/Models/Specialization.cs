@@ -18,5 +18,7 @@ public partial class Specialization
     /// </summary>
     public string Name { get; set; } = null!;
 
+    public string? Photo { get; set; }
+
     public virtual ICollection<User> Users { get; set; } = new List<User>();
 }

@@ -148,6 +148,9 @@ public partial class FarolaContext : DbContext
                 .HasMaxLength(100)
                 .HasComment("Наименование специализации")
                 .HasColumnName("name");
+            entity.Property(e => e.Photo)
+                .HasMaxLength(100)
+                .HasColumnName("photo");
         });
 
         modelBuilder.Entity<Statement>(entity =>
@@ -243,7 +246,7 @@ public partial class FarolaContext : DbContext
                 .HasComment("Имя пользователя")
                 .HasColumnName("name");
             entity.Property(e => e.Password)
-                .HasMaxLength(50)
+                .HasMaxLength(255)
                 .HasComment("Пароль")
                 .HasColumnName("password");
             entity.Property(e => e.Patronymic)
