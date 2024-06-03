@@ -50,7 +50,7 @@ namespace Farola.Server.Infrastructure.Commands
         /// <returns>Найденный пользователь или null, если пользователь не найден</returns>
         public async Task<string?> Handle(AuthCommand request, CancellationToken cancellationToken)
         {
-            var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == request.Email);
+            User user = await _context.Users.FirstOrDefaultAsync(u => u.Email == request.Email);
 
             if (user == null) return null;
 
