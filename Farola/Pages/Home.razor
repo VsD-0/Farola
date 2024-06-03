@@ -6,6 +6,7 @@
 @using System.IdentityModel.Tokens.Jwt
 @inject IProfessionalClient ProfessionalAPI
 @inject NavigationManager Navigation
+@inject IJSRuntime JsRuntime
 
 <!--Домашняя страница-->
 <FluentLayout Id="home-page" 
@@ -174,12 +175,13 @@
 
         rows = specstats.Count % 3 == 0 ? specstats.Count / 3 : specstats.Count / 3 + 1;
 
-        if (TokenStorage.Token is not null)
+        if (!String.IsNullOrEmpty(await JsRuntime.InvokeAsync<string>("getToken")))
         {
+            var t = await JsRuntime.InvokeAsync<string>("getToken");
             var tokenHandler = new JwtSecurityTokenHandler();
 
             // Получение токена
-            var jwtToken = tokenHandler.ReadJwtToken(TokenStorage.Token);
+            var jwtToken = tokenHandler.ReadJwtToken(await JsRuntime.InvokeAsync<string>("getToken"));
 
             // Получение роли из токена
             var roleClaim = jwtToken.Claims.FirstOrDefault(claim => claim.Type == "role");

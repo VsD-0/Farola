@@ -34,7 +34,7 @@ namespace Farola.API.Controllers
         public async Task<IActionResult> GetUserById(int id)
         {
             var user = await _mediator.Send(new GetUserByIdQuerie { Id = id });
-            return user is not null ? Ok(user) : NotFound("Пользователь не найден");
+            return user is not null ? Ok(user) : NotFound(null);
         }
 
         /// <summary>

@@ -48,6 +48,6 @@
     {
         pro.Specialization = int.Parse(spec.Value);
         await ProfessionalAPI.SignUp(pro);
-        Navigation.NavigateTo("/professional/all");
+        Navigation.NavigateTo("/professional/all/search");
     }
 }

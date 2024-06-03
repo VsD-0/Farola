@@ -2,6 +2,7 @@
 using Farola.Database.Models;
 using Farola.ViewModels;
 using System.IdentityModel.Tokens.Jwt;
+using System.Net;
 using System.Net.Http.Headers;
 
 namespace Farola.Infrastructure.Handlers
@@ -23,7 +24,10 @@ namespace Farola.Infrastructure.Handlers
         /// Инициализирует новый экземпляр класса <see cref="TokenHandler"/>.
         /// </summary>
         /// <param name="authData">Сервис аутентификации для обновления токена.</param>
-        public TokenHandler(IUserClient authData) => _authData = authData;
+        public TokenHandler(IUserClient authData)
+        {
+            _authData = authData;
+        }
 
         /// <summary>
         /// Добавляет или обновляет JWT-токен перед отправкой запроса.
@@ -40,11 +44,27 @@ namespace Farola.Infrastructure.Handlers
 
                 if (DateTime.UtcNow > jwtToken.ValidTo)
                 {
-                    int userId = int.Parse(jwtToken.Claims.FirstOrDefault(claim => claim.Type == "nameid")?.Value ?? throw new("Тип не был найден"));
+                    try
+                    {
+                        int userId = int.Parse(jwtToken.Claims.FirstOrDefault(claim => claim.Type == "nameid")?.Value ?? throw new("Тип не был найден"));
+                        User user = await _authData.GetUserById(userId);
 
-                    User user = await _authData.GetUserById(userId);
-                    var newToken = await _authData.SignIn(new AuthModel { Email = user.Email, Password = user.Password });
-                    TokenStorage.Token = newToken;
+                        if (user == null)
+                        {
+                            return new HttpResponseMessage(HttpStatusCode.Unauthorized);
+                        }
+
+                        var newToken = await _authData.SignIn(new AuthModel 
+                        {
+                            Email = user?.Email,
+                            Password = user?.Password, 
+                            RefreshToken = user?.RefreshToken });
+                        TokenStorage.Token = newToken;
+                    }
+                    catch (Exception ex)
+                    {
+                        return new HttpResponseMessage(HttpStatusCode.InternalServerError);
+                    }
                 }
 
                 request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", TokenStorage.Token);
