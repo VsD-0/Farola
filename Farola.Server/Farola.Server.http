@@ -1,0 +1,3 @@
+@Farola.API_HostAddress = https://localhost:7227
+
+GET {{Farola.API_HostAddress}}/api/Professional/GetProfessionals?pageNumber=1&pageSize=2
