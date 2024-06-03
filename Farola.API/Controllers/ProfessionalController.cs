@@ -6,7 +6,6 @@ using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Net;
-using System.Threading;
 
 
 namespace Farola.API.Controllers

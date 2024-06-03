@@ -7,6 +7,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
+using System.Security.Cryptography;
 using System.Text;
 
 namespace Farola.API.Infrastructure.Commands
@@ -31,6 +32,13 @@ namespace Farola.API.Infrastructure.Commands
         [FromBody]
         [BindRequired]
         public string? Password { get; set; }
+
+        /// <summary>
+        /// Токен Обновления
+        /// </summary>
+        [FromBody]
+        [BindRequired]
+        public string? RefreshToken { get; set; }
     }
 
     /// <summary>
@@ -54,6 +62,20 @@ namespace Farola.API.Infrastructure.Commands
 
             if (user == null) return null;
 
+            if (request.RefreshToken != null)
+            {
+                var refreshToken = await ValidateRefreshToken(request.RefreshToken);
+                if (refreshToken != null)
+                {
+                    var newAccessToken = GenerateAccessToken(refreshToken.User);
+                    var newRefreshToken = GenerateRefreshToken();
+
+                    await UpdateRefreshToken(refreshToken.User.Id, newRefreshToken);
+
+                    return newAccessToken;
+                }
+            }
+
             var jwtSettings = _configuration.GetSection("JwtSettings")?.Get<JwtSettings>() ?? throw new ArgumentNullException("jwtSettings", "Отсутствуют настройки jwt");
             var tokenHandler = new JwtSecurityTokenHandler();
             var secretKey = Encoding.UTF8.GetBytes(jwtSettings?.SecretKey);
@@ -64,7 +86,7 @@ namespace Farola.API.Infrastructure.Commands
                     new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
                     new Claim(ClaimTypes.Role, user.RoleId.ToString())
                 }),
-                Expires = DateTime.UtcNow.AddMinutes(15),
+                Expires = DateTime.UtcNow.AddSeconds(10),
                 Issuer = jwtSettings.Issuer,
                 Audience = jwtSettings.Audience,
                 SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(secretKey), SecurityAlgorithms.HmacSha256Signature)
@@ -72,6 +94,56 @@ namespace Farola.API.Infrastructure.Commands
             var token = tokenHandler.CreateToken(tokenDescriptor);
 
             return tokenHandler.WriteToken(token);
+        }
+
+        private async Task<RefreshToken?> ValidateRefreshToken(string refreshToken) => await _context.RefreshTokens
+            .FirstOrDefaultAsync(r => r.Token == refreshToken && r.Expiresat > DateTime.UtcNow);
+
+
+        private string GenerateAccessToken(User user)
+        {
+            var claimsIdentity = new ClaimsIdentity(new[]
+            {
+                new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
+                new Claim(ClaimTypes.Role, user.RoleId.ToString())
+            });
+
+            var tokenDescriptor = new SecurityTokenDescriptor
+            {
+                Subject = claimsIdentity,
+                Expires = DateTime.UtcNow.AddMinutes(15),
+                Issuer = _configuration["JwtSettings:Issuer"],
+                Audience = _configuration["JwtSettings:Audience"],
+                SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["JwtSettings:SecretKey"])), SecurityAlgorithms.HmacSha256Signature)
+            };
+
+            var tokenHandler = new JwtSecurityTokenHandler();
+            var token = tokenHandler.CreateToken(tokenDescriptor);
+
+            return tokenHandler.WriteToken(token);
+        }
+
+        private string GenerateRefreshToken()
+        {
+            var randomNumber = new byte[32];
+            using (var rng = RandomNumberGenerator.Create())
+            {
+                rng.GetBytes(randomNumber);
+            }
+
+            var refreshToken = Convert.ToBase64String(randomNumber);
+
+            return refreshToken;
+        }
+
+        private async Task UpdateRefreshToken(int userId, string newRefreshToken)
+        {
+            var user = await _context.Users.FindAsync(userId);
+            if (user != null)
+            {
+                user.RefreshToken = newRefreshToken;
+                await _context.SaveChangesAsync();
+            }
         }
     }
 }

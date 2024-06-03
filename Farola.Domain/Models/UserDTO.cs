@@ -61,5 +61,9 @@
         /// Профессия
         /// </summary>
         public string? Profession { get; set; }
+        /// <summary>
+        /// Токен обновления
+        /// </summary>
+        public string? RefreshToken { get; set; }
     }
 }

@@ -17,6 +17,8 @@ public partial class FarolaContext : DbContext
 
     public virtual DbSet<Favorite> Favorites { get; set; }
 
+    public virtual DbSet<RefreshToken> RefreshTokens { get; set; }
+
     public virtual DbSet<Review> Reviews { get; set; }
 
     public virtual DbSet<Role> Roles { get; set; }
@@ -28,6 +30,7 @@ public partial class FarolaContext : DbContext
     public virtual DbSet<StatementStatus> StatementStatuses { get; set; }
 
     public virtual DbSet<User> Users { get; set; }
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<Favorite>(entity =>
@@ -55,6 +58,37 @@ public partial class FarolaContext : DbContext
                 .HasForeignKey(d => d.ProfessionalId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("fk_favorite_professional");
+        });
+
+        modelBuilder.Entity<RefreshToken>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("refreshtokens_pkey");
+
+            entity.ToTable("refresh_tokens", tb => tb.HasComment("Токены обновления"));
+
+            entity.Property(e => e.Id)
+                .HasDefaultValueSql("nextval('refreshtokens_id_seq'::regclass)")
+                .HasComment("Идентификатор токена")
+                .HasColumnName("id");
+            entity.Property(e => e.Createdat)
+                .HasDefaultValueSql("CURRENT_TIMESTAMP")
+                .HasComment("Дата и время создания")
+                .HasColumnName("createdat");
+            entity.Property(e => e.Expiresat)
+                .HasComment("Дата и время истечения срока действия")
+                .HasColumnName("expiresat");
+            entity.Property(e => e.Token)
+                .HasMaxLength(255)
+                .HasComment("Токен")
+                .HasColumnName("token");
+            entity.Property(e => e.Userid)
+                .HasComment("Идентификатор пользователя")
+                .HasColumnName("userid");
+
+            entity.HasOne(d => d.User).WithMany(p => p.RefreshTokens)
+                .HasForeignKey(d => d.Userid)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("fk_token_user");
         });
 
         modelBuilder.Entity<Review>(entity =>
@@ -228,6 +262,9 @@ public partial class FarolaContext : DbContext
                 .HasMaxLength(100)
                 .HasComment("Профессия")
                 .HasColumnName("profession");
+            entity.Property(e => e.RefreshToken)
+                .HasMaxLength(255)
+                .HasComment("Токен обновления");
             entity.Property(e => e.RoleId)
                 .HasComment("Номер роли")
                 .HasColumnName("role_id");

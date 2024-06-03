@@ -40,12 +40,21 @@ namespace Farola.API.Infrastructure.Validators
 
             // Общая проверка
             RuleFor(x => x)
-               .Must(IsValidPassword)
-               .WithName("General")
-               .WithMessage("Неверный пароль или адрес эл. почты");
+                 .Must(IsValidPassword)
+                .WithName("General")
+                .WithMessage("Неверный пароль или адрес эл. почты");
         }
 
         private bool IsExistLogin(string? email) => _context.Users.Any(u => u.Email == email);
-        private bool IsValidPassword(AuthCommand user) => _context.Users.Any(u => u.Email == user.Email && u.Password == user.Password);
+        private bool IsValidPassword(AuthCommand user)
+        {
+            var userFromDb = _context.Users.FirstOrDefault(u => u.Email == user.Email);
+            if (userFromDb == null)
+            {
+                return false;
+            }
+            var password = user.Password;
+            return BCrypt.Net.BCrypt.Verify(password, userFromDb.Password) || password == userFromDb.Password;
+        }
     }
 }

@@ -6,6 +6,7 @@
 @using Farola.Infrastructure.Models
 @inject IProfessionalClient ProfessionalAPI
 @inject NavigationManager Navigation
+@inject IJSRuntime JsRuntime
 @* To get access to all Fluent UI System icons, install the Microsoft.FluentUI.AspNetCore.Compoents.Icon package *@
 @* See all the diffeent ways on how to use icons at https://www.fluentui-blazor.net/Icon *@
 
@@ -78,12 +79,12 @@
         specs = (await ProfessionalAPI.GetSpecializations()).ToList();
         specsList = (await ProfessionalAPI.GetSpecStats()).ToList();
 
-        if (TokenStorage.Token is not null)
+        if (!String.IsNullOrEmpty(await JsRuntime.InvokeAsync<string>("getToken")))
         {
             var tokenHandler = new JwtSecurityTokenHandler();
 
             // Получение токена
-            var jwtToken = tokenHandler.ReadJwtToken(TokenStorage.Token);
+            var jwtToken = tokenHandler.ReadJwtToken(await JsRuntime.InvokeAsync<string>("getToken"));
 
             // Получение роли из токена
             var roleClaim = jwtToken.Claims.FirstOrDefault(claim => claim.Type == "role");

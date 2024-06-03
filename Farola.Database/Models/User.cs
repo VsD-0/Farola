@@ -78,9 +78,16 @@ public partial class User
     /// </summary>
     public string? Patronymic { get; set; }
 
+    /// <summary>
+    /// Токен обновления
+    /// </summary>
+    public string? RefreshToken { get; set; }
+
     public virtual ICollection<Favorite> FavoriteClients { get; set; } = new List<Favorite>();
 
     public virtual ICollection<Favorite> FavoriteProfessionals { get; set; } = new List<Favorite>();
+
+    public virtual ICollection<RefreshToken> RefreshTokens { get; set; } = new List<RefreshToken>();
 
     public virtual Role Role { get; set; } = null!;
 

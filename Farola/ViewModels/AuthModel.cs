@@ -13,5 +13,10 @@
         /// </summary>
         /// <example>Ivan123#</example>
         public string? Password { get; set; }
+
+        /// <summary>
+        /// Токен Обновления
+        /// </summary>
+        public string? RefreshToken { get; set; }
     }
 }

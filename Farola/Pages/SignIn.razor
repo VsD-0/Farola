@@ -58,27 +58,38 @@
     {
         try
         {
-            string token = await UserAPI.SignIn(new AuthModel
+            if (String.IsNullOrEmpty(await JsRuntime.InvokeAsync<string>("getToken")))
             {
-                    Email = Email,
-                    Password = Password
-            });
-            TokenStorage.Token = token;
-            var tokenHandler = new JwtSecurityTokenHandler();
+                string token = await UserAPI.SignIn(new AuthModel
+                    {
+                        Email = Email,
+                        Password = Password
+                    });
 
-            var jwtToken = tokenHandler.ReadJwtToken(TokenStorage.Token);
+                await JsRuntime.InvokeVoidAsync("setToken", token);
 
-            var roleClaim = jwtToken.Claims.FirstOrDefault(claim => claim.Type == "role");
-            role = roleClaim is not null ? roleClaim.Value : "2";
+                TokenStorage.Token = token;
+                var tokenHandler = new JwtSecurityTokenHandler();
 
-            var idClaim = jwtToken.Claims.FirstOrDefault(claim => claim.Type == "nameid");
-            clientId = idClaim is not null ? idClaim.Value : "0";
-            CurrentUser.Id = clientId;
-            CurrentUser.Role = role;
-            var user = await UserAPI.GetUserById(int.Parse(clientId));
-            CurrentUser.UserName = $"{user.Surname} {user.Name} {user.Patronymic}";
+                var jwtToken = tokenHandler.ReadJwtToken(await JsRuntime.InvokeAsync<string>("getToken"));
 
-            Navigation.NavigateTo("/");
+                var roleClaim = jwtToken.Claims.FirstOrDefault(claim => claim.Type == "role");
+                role = roleClaim is not null ? roleClaim.Value : "2";
+
+                var idClaim = jwtToken.Claims.FirstOrDefault(claim => claim.Type == "nameid");
+                clientId = idClaim is not null ? idClaim.Value : "0";
+                CurrentUser.Id = clientId;
+                CurrentUser.Role = role;
+                var user = await UserAPI.GetUserById(int.Parse(clientId));
+                CurrentUser.UserName = $"{user.Surname} {user.Name} {user.Patronymic}";
+
+                Navigation.NavigateTo("/");
+            }
+            else
+            {
+                var token = await JsRuntime.InvokeAsync<string>("getToken");
+                TokenStorage.Token = token;
+            }
         }
         catch (ValidationApiException ex)
         {
