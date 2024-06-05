@@ -11,28 +11,36 @@
 
 <PageTitle>Специалисты</PageTitle>
 
-<FluentStack Orientation="Orientation.Vertical">
-<h1>Специалисты</h1>
+<FluentStack Orientation="Orientation.Vertical" HorizontalAlignment="HorizontalAlignment.Center">
+<FluentLabel Typo="Typography.H1" Alignment="HorizontalAlignment.Center">Специалисты</FluentLabel>
 
 @if (pros != null)
 {
     @if (pros?.Items?.Count == 0)
     {
-        <FluentStack Orientation="Orientation.Vertical">
-            <FluentStack Orientation="Orientation.Horizontal">
-                <FluentSearch @bind-Value="@profession" Placeholder="Введите необходимого специалиста" Label="Профессия" />
-                <FluentButton OnClick="Search">Найти</FluentButton>
-            </FluentStack>
-        <p><em>Специалисты отсутствуют</em></p>
-        </FluentStack>
+        <FluentGrid>
+            <FluentGridItem xxl="9" xl="9" lg="9" md="9" sm="9" xs="9">
+                <FluentSearch @bind-Value="@profession" Placeholder="Введите необходимого специалиста" Style="font-size:18px; width: 100%"/>
+            </FluentGridItem>
+            <FluentGridItem xxl="3" xl="3" lg="3" md="3" sm="3" xs="3">
+                    <FluentButton Appearance="Appearance.Accent" OnClick="Search">Найти</FluentButton>
+            </FluentGridItem>
+            <FluentGridItem xxl="12" xl="12" lg="12" md="12" sm="12" xs="12">
+                <p><em>Специалисты отсутствуют</em></p>
+            </FluentGridItem>
+        </FluentGrid>
     }
     else
     {
-        <FluentStack Orientation="Orientation.Vertical">
-            <FluentStack Orientation="Orientation.Horizontal">
-                <FluentSearch @bind-Value="@profession" Placeholder="Введите необходимого специалиста" Label="Профессия" />
-                <FluentButton OnClick="Search">Найти</FluentButton>
-            </FluentStack>
+        <FluentStack Orientation="Orientation.Vertical" HorizontalAlignment="HorizontalAlignment.Center">
+                <FluentGrid Style="width: 100%" Justify="JustifyContent.Center">
+                <FluentGridItem xxl="10" xl="10" lg="10" md="10" sm="10" xs="10" Justify="JustifyContent.Center">
+                    <FluentSearch @bind-Value="@profession" Placeholder="Введите необходимого специалиста" Style="font-size:18px; width: 100%" />
+                </FluentGridItem>
+                    <FluentGridItem xxl="2" xl="2" lg="2" md="2" sm="2" xs="2" Justify="JustifyContent.Center">
+                        <FluentButton Appearance="Appearance.Accent" Style="width: 60%" OnClick="Search">Найти</FluentButton>
+                </FluentGridItem>
+            </FluentGrid>
             <FluentGrid AdaptiveRendering=true Justify="JustifyContent.Center">
             @foreach (var item in pros?.Items)
             {
@@ -45,36 +53,48 @@
                             <FluentGridItem xxl="10" xl="10" lg="10" md="10" sm="10" xs="10" Justify="JustifyContent.FlexStart">
                                 <FluentStack Orientation="Orientation.Vertical">
                                     <FluentNavLink Href="@(GetProLink(item.Id))" IconColor="Color.Accent" Style="font-size: 24px; font-weight: bold">@item.Profession</FluentNavLink>
-                                    <FluentLabel Typo="Typography.Body">@item.Specialization</FluentLabel>
+                                    <FluentLabel Typo="Typography.Subject">@item.Specialization</FluentLabel>
                                 </FluentStack>
                             </FluentGridItem>
                             <FluentGridItem xxl="12" xl="12" lg="12" md="12" sm="12" xs="12" Justify="JustifyContent.FlexStart">
-                                <FluentLabel Typo="Typography.Body">@item.Surname @item.Name</FluentLabel>
+                                        <FluentLabel Typo="Typography.H5">@item.Surname @item.Name</FluentLabel>
                             </FluentGridItem>
                             <FluentGridItem xxl="12" xl="12" lg="12" md="12" sm="12" xs="12" Justify="JustifyContent.FlexStart">
-                                <FluentLabel Typo="Typography.Body">@item.Email</FluentLabel>
+                                        <FluentLabel Typo="Typography.Subject">@item.Email</FluentLabel>
                             </FluentGridItem>
                             @if(item.Area != null)
                             {
                                 <FluentGridItem xxl="12" xl="12" lg="12" md="12" sm="12" xs="12" Justify="JustifyContent.FlexStart">
-                                    <FluentLabel Typo="Typography.Body">@item.Area</FluentLabel>
+                                            <FluentLabel Typo="Typography.Subject">@item.Area</FluentLabel>
                                 </FluentGridItem>
                             }
                             <FluentGridItem xxl="12" xl="12" lg="12" md="12" sm="12" xs="12" Justify="JustifyContent.FlexStart">
-                                <FluentLabel Typo="Typography.Body">@item.Information</FluentLabel>
+                                        <FluentLabel Typo="Typography.Subject">@item.Information</FluentLabel>
                             </FluentGridItem>
                         </FluentGrid>
                     </FluentCard>
                 </FluentGridItem>
             }
             </FluentGrid>
+            <FluentGrid Style="width: 100%">
+                <FluentGridItem xxl="6" xl="6" lg="6" md="6" sm="6" xs="6" Justify="JustifyContent.FlexStart">
+                    <FluentStack Orientation="Orientation.Horizontal">
+                        @if (pros.Pagination.CurrentPage != 1)
+                        {
+                            <FluentButton IconStart="@(new Icons.Filled.Size16.CaretLeft())" OnClick="Preview"></FluentButton>
+                        }
+                        <FluentLabel Typo="Typography.H3">@pros.Pagination.CurrentPage</FluentLabel>
+                        @if (pros.Pagination.TotalPages != pros.Pagination.CurrentPage)
+                        {
+                            <FluentButton IconEnd="@(new Icons.Filled.Size16.CaretRight())" OnClick="Next"></FluentButton>
+                        }
+                    </FluentStack>
+                </FluentGridItem>
+                <FluentGridItem xxl="6" xl="6" lg="6" md="6" sm="6" xs="6" Justify="JustifyContent.FlexEnd">
+                        <FluentLabel Typo="Typography.Subject">Количество страниц: @pros.Pagination.TotalPages</FluentLabel>
+                    </FluentGridItem>
+            </FluentGrid>
         </FluentStack>
-
-        <FluentStack Orientation="Orientation.Horizontal">
-            <FluentButton OnClick="Preview">Назад</FluentButton>
-            <FluentLabel>@pros.Pagination.CurrentPage</FluentLabel>
-            <FluentButton OnClick="Next">Вперёд</FluentButton>
-        </FluentStack>   
         }
     }
 else

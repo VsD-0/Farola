@@ -14,19 +14,16 @@
     <!--Блок основной информации о сайте-->
     <FluentGrid id="main" Style="margin: 3px 3px 15px 3px">
         <!--Название сайта-->
-        <FluentGridItem Id="main-title" xxl="12" xl="12" lg="12" md="12" sm="12" xs="12">
-            <FluentLabel Id="title-site" Typo="Typography.HeroTitle" Alignment="HorizontalAlignment.Center" Weight="FontWeight.Bold" >
+        <FluentGridItem Id="main-title" xxl="12" xl="12" lg="12" md="12" sm="12" xs="12" Style="height: 220px; align-content: center;">
+            <FluentLabel Id="title-site" Alignment="HorizontalAlignment.Center" Weight="FontWeight.Bold" Style="font-size: 130px" >
                 Farola
             </FluentLabel>
         </FluentGridItem>
         <!--Краткое описание сайта-->
         <FluentGridItem xxl="12" xl="12" lg="12" md="12" sm="12" xs="12">
-            <FluentLabel Id="description-site" Typo="Typography.Header" Alignment="HorizontalAlignment.Center" Weight="FontWeight.Normal" Style="margin: 0% 10%">
+            <FluentLabel Id="description-site" Typo="Typography.PaneHeader" Alignment="HorizontalAlignment.Center" Weight="FontWeight.Normal" Style="margin: 0% 10%">
                 Farola – это платформа, созданная для решения проблемы, с которой сталкиваются как клиенты, 
-                так и специалисты. Клиенты часто испытывают трудности при поиске квалифицированных специалистов, 
-                а специалисты тратят драгоценное время на поиск новых клиентов. Farola устраняет эти препятствия, 
-                создавая единое пространство, где клиенты могут легко найти специалистов, отвечающих их потребностям, 
-                а специалисты могут расширить свою клиентскую базу.
+                так и специалисты.
             </FluentLabel>
         </FluentGridItem>
     </FluentGrid>
@@ -40,7 +37,7 @@
                           DisplayName="Профессия" Maxlength="100" Minlength="1" Spellcheck="true" Style="width: 100%; font-size: 15pt"/>
         </FluentGridItem> 
         <FluentGridItem Id="search-btn" xxl="4" xl="2" lg="2" md="1" sm="2" xs="12" Justify="JustifyContent.Center">
-            <FluentButton Id="btn-search" Appearance="Appearance.Accent" Style="width: 50%" OnClick="Search">Найти</FluentButton>
+            <FluentButton Id="btn-search" Appearance="Appearance.Accent" Style="width: 50%; font-weight:700 " OnClick="Search">Найти</FluentButton>
         </FluentGridItem>
     </FluentGrid>
     <br/>
@@ -52,14 +49,19 @@
             {
                 @foreach (var item in specstats)
                 {
-                    <FluentGridItem xxl="2" xl="3" lg="3" md="4" sm="6" xs="12" Justify="JustifyContent.Center">
-                        <FluentCard Width="290px" Height="210px" AreaRestricted="true" Style="padding: 3px 3px 3px 3px">
-                            <FluentGrid Style="height: 210px">
-                                <FluentGridItem xxl="12" xl="12" lg="12" md="12" sm="12" xs="12" Style="height: 100%;" Justify="JustifyContent.Center">
-                                    <FluentNavLink Href="@($"/professional/{item.Spec.Id}/search")" IconColor="Color.Accent" Tooltip="@item.Spec.Name" Style="height: 210px; font-size: 1.8em; align-content:center">@item.Spec.Name</FluentNavLink>
-                                </FluentGridItem>
-                            </FluentGrid>
-                        </FluentCard>
+                    <FluentGridItem xxl="2" xl="3" lg="3" md="4" sm="6" xs="12" Justify="JustifyContent.Center" Style="height: 260px">
+                        <FluentGrid Spacing="1">
+                            <FluentGridItem xxl="12" xl="12" lg="12" md="12" sm="12" xs="12" Style="height: 100%; width: 100%;">
+                                <FluentNavLink Href="@($"/professional/{item.Spec.Id}/search")" Style="padding: 0px; display: flex; flex-direction: column; height: 100%;">
+                                    <FluentCard Width="290px" Height="210px" AreaRestricted="true"  Style="padding: 0px;">
+                                        <img src="@($"/images/specialization/{item.Spec.Photo}")" alt="@item.Spec.Name specialization background" style="width: 100%; height: 100%; object-fit: cover; filter: blur(0.5px); -webkit-filter: blur(0.5px); /* Safari and Chrome */" />
+                                    </FluentCard>
+                                    <FluentGridItem xxl="12" xl="12" lg="12" md="12" sm="12" xs="12" Justify="JustifyContent.Center" Style="padding: 10px; color: black; font-size: 1.3rem; font-weight: 600; text-align: center;">
+                                        @item.Spec.Name
+                                    </FluentGridItem>
+                                </FluentNavLink>
+                            </FluentGridItem>
+                        </FluentGrid>
                     </FluentGridItem>
                 }
             }
@@ -70,7 +72,7 @@
         }
         else
         {
-            <FluentProgressRing/>
+            <FluentProgressRing />
         }
     </FluentGrid>
     <br/>
@@ -90,40 +92,59 @@
                             <FluentGridItem xxl="4" xl="4" lg="6" md="6" sm="12" xs="12" Justify="JustifyContent.Center">
                                 <FluentCard Width="100%" AreaRestricted="true" Style="padding: 3px 3px 3px 3px">
                                     <FluentGrid Style="height: auto; padding: 10px">
-                                        <FluentGridItem xxl="2" xl="2" lg="2" md="2" sm="2" xs="2">
+                                        <FluentGridItem xxl="1" xl="1" lg="1" md="1" sm="1" xs="1">
                                             <FluentIcon Value="@(new Icons.Regular.Size24.Person())" Title="Person" Width="70px" Color="Color.Accent" />
                                         </FluentGridItem>
-                                        <FluentGridItem xxl="10" xl="10" lg="10" md="10" sm="10" xs="10">
+                                        <FluentGridItem xxl="11" xl="11" lg="11" md="11" sm="11" xs="11" Style="padding: 15px 30px">
                                             <FluentGrid Justify="JustifyContent.FlexStart">
                                                 <FluentGridItem xxl="12" xl="12" lg="12" md="12" sm="12" xs="12" Justify="JustifyContent.FlexStart">
-                                                    <FluentLabel>@item.Professional.Surname @item.Professional.Name @item.Professional.Patronymic</FluentLabel>
+                                                    <FluentNavLink Href="@(GetProLink(item.Professional.Id))" IconColor="Color.Accent" Style="font-size: 22px; font-weight: bold">@item.Professional.Surname @item.Professional.Name @item.Professional.Patronymic</FluentNavLink>
                                                 </FluentGridItem>
-                                                <FluentGridItem xxl="2" xl="2" lg="2" md="2" sm="2" xs="2" Justify="JustifyContent.FlexStart">
-                                                    <FluentLabel> <FluentIcon Value="@(new Icons.Filled.Size24.Star())" Title="Star" Width="14px" Color="Color.Accent" /> @Math.Round(item.AvgGrade, 2, MidpointRounding.ToPositiveInfinity)</FluentLabel>
+                                                <FluentGridItem xxl="3" xl="3" lg="3" md="3" sm="3" xs="3" Justify="JustifyContent.Center">
+                                                    <FluentLabel Typo="Typography.Subject"> <FluentIcon Value="@(new Icons.Filled.Size20.StarEmphasis())" Title="Star" Color="Color.Accent" /> @Math.Round(item.AvgGrade, 2, MidpointRounding.ToPositiveInfinity)</FluentLabel>
                                                 </FluentGridItem>
-                                                <FluentGridItem xxl="6" xl="6" lg="6" md="6" sm="6" xs="6">
-                                                    <FluentLabel>Количество отзывов: @item.CountGrade</FluentLabel>
+                                                <FluentGridItem xxl="9" xl="9" lg="9" md="9" sm="9" xs="9">
+                                                    @if (@item.CountGrade == 1)
+                                                    {
+                                                        <FluentLabel Typo="Typography.Subject">1 Отзыв</FluentLabel>
+                                                    }
+                                                    else if (@item.CountGrade >= 2 && @item.CountGrade <= 4)
+                                                    {
+                                                        <FluentLabel Typo="Typography.Subject">@item.CountGrade.ToString() Отзыва</FluentLabel>
+                                                    }
+                                                    else if (@item.CountGrade > 21 && (@item.CountGrade % 10 >= 2 && @item.CountGrade % 10 <= 4))
+                                                    {
+                                                        <FluentLabel Typo="Typography.Subject">@item.CountGrade.ToString() Отзыва</FluentLabel>
+                                                    }
+                                                    else if (@item.CountGrade != 11 && @item.CountGrade % 10 == 1)
+                                                    {
+                                                        <FluentLabel Typo="Typography.Subject">@item.CountGrade.ToString() Отзыв</FluentLabel>
+                                                    }
+                                                    else
+                                                    {
+                                                        <FluentLabel Typo="Typography.Subject">@item.CountGrade.ToString() Отзывов</FluentLabel>
+                                                    }
                                                 </FluentGridItem>
                                             </FluentGrid>
                                         </FluentGridItem>
-                                        <FluentGridItem xxl="6" xl="6" lg="6" md="6" sm="6" xs="6">
-                                            <FluentLabel>@item.Client.Name @item.Client.Patronymic поставил(а) оценку</FluentLabel>
+                                        <FluentGridItem xxl="8" xl="8" lg="8" md="8" sm="8" xs="8">
+                                            <FluentLabel Style="font-size: 1.4em"><span style="font-weight: 600">@item.Client.Name @item.Client.Patronymic</span> поставил(а) оценку</FluentLabel>
                                         </FluentGridItem>
-                                        <FluentGridItem xxl="6" xl="6" lg="6" md="6" sm="6" xs="6">
+                                        <FluentGridItem xxl="4" xl="4" lg="4" md="4" sm="4" xs="4">
                                             <FluentStack Orientation="Orientation.Horizontal">
-                                                @item.Grade
+                                                 <FluentLabel Typo="Typography.H4">@item.Grade</FluentLabel>
                                                 @for (int i = 0; i < item.Grade; i++)
                                                 {
-                                                    <FluentIcon Value="@(new Icons.Filled.Size24.Star())" Title="Star" Width="14px"  Color="Color.Accent" />
+                                                    <FluentIcon Value="@(new Icons.Filled.Size20.Star())" Title="Star" Color="Color.Accent" />
                                                     if (i == 3) break;
                                                 }
                                                 @if (item.Grade == 5)
                                                 {
-                                                    <FluentIcon Value="@(new Icons.Filled.Size20.StarEmphasis())" Width="14px" Color="Color.Accent" />
+                                                    <FluentIcon Value="@(new Icons.Filled.Size20.StarEmphasis())" Title="StarEmphasis" Color="Color.Accent" />
                                                 }
                                                 @if (item.Grade == 4.5)
                                                 {
-                                                    <FluentIcon Value="@(new Icons.Filled.Size24.StarHalf())" Title="Star" Width="14px" />
+                                                    <FluentIcon Value="@(new Icons.Filled.Size20.StarHalf())" Title="StarHalf" />
                                                 }
                                             </FluentStack>
                                         </FluentGridItem>
@@ -131,13 +152,12 @@
                                         {
                                             <FluentGridItem xxl="12" xl="12" lg="12" md="12" sm="12" xs="12" Justify="JustifyContent.FlexStart">
                                                 <FluentStack Orientation="Orientation.Vertical">
-                                                    <FluentLabel>Отзыв</FluentLabel>
-                                                    <FluentLabel>@item.Text</FluentLabel>
+                                                    <FluentLabel Typo="Typography.Subject">@item.Text</FluentLabel>
                                                 </FluentStack>
                                             </FluentGridItem>
                                         }
                                         <FluentGridItem xxl="12" xl="12" lg="12" md="12" sm="12" xs="12">
-                                            <FluentLabel>Дата @item.DateAdded</FluentLabel>
+                                            <FluentLabel Typo="Typography.Subject">Дата @item.DateAdded</FluentLabel>
                                         </FluentGridItem>
                                     </FluentGrid>
                                 </FluentCard>
@@ -203,4 +223,8 @@
         Navigation.NavigateTo($"/statements/{clientId}");
     }
 
+    private string GetProLink(int? proId)
+    {
+        return proId != null ? $"/professional/{proId}" : "#";
+    }
 }

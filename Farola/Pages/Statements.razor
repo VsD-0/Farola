@@ -246,7 +246,7 @@
                 Content = new()
                 {
                     Title = "Подтверждение",
-                    MarkupMessage = new MarkupString("<h4>Вы уверены, что хотите принять заявку</h4>"),
+                    MarkupMessage = new MarkupString("<h4>Вы уверены, что хотите принять заявку?</h4>"),
                     Icon = new Icons.Regular.Size24.Warning(),
                     IconColor = Color.Warning,
                 },
@@ -269,7 +269,7 @@
                 Content = new()
                 {
                     Title = "Подтверждение",
-                    MarkupMessage = new MarkupString("<h4>Вы уверены, что хотите отклонить заявку</h4>"),
+                    MarkupMessage = new MarkupString("<h4>Вы уверены, что хотите отклонить заявку?</h4>"),
                     Icon = new Icons.Regular.Size24.Warning(),
                     IconColor = Color.Warning,
                 },
@@ -292,7 +292,7 @@
                 Content = new()
                 {
                     Title = "Подтверждение",
-                    MarkupMessage = new MarkupString("<h4>Вы уверены, что хотите закрыть заявку</h4>"),
+                    MarkupMessage = new MarkupString("<h4>Вы уверены, что хотите закрыть заявку?</h4>"),
                     Icon = new Icons.Regular.Size24.Warning(),
                     IconColor = Color.Warning,
                 },
@@ -306,6 +306,7 @@
         {
             await StatementAPI.UpdateStatus(statementId, 4);
             Stats = (await StatementAPI.GetStatementsById(int.Parse(userId))).ToList<StatementsViewModel>();
+
         }
     }
     private async Task SaveGrade(int statementId, Option<string> grade)

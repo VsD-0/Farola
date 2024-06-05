@@ -1,0 +1,84 @@
+﻿@page "/favorites"
+@using Farola.API
+@using Farola.Database.Models
+@using System.IdentityModel.Tokens.Jwt
+@inject IFavoriteClient FavoriteAPI
+@inject IJSRuntime JSRuntime
+
+<PageTitle>Избранные</PageTitle>
+<FluentLabel Typo="Typography.H2">Избранные</FluentLabel>
+@if (FavoritesPro != null)
+{
+    if (FavoritesPro.Count() != 0)
+    {
+        <FluentGrid>
+            @foreach (var item in FavoritesPro)
+            {
+                <FluentGridItem xxl="2" xl="3" lg="3" md="4" sm="6" xs="12">
+                    <FluentCard>
+                        <FluentGrid>
+                            <FluentGridItem>
+                                <FluentPersona Image="@(new Icons.Filled.Size48.Person().ToDataUri(size: "40px", color: "white"))" ImageSize="80px"></FluentPersona>
+                            </FluentGridItem>
+                            <FluentGridItem>
+                                @item.Profession
+                            </FluentGridItem>
+                            <FluentGridItem>
+                                @item.Surname @item.Name @item.Patronymic
+                            </FluentGridItem>
+                            <FluentGridItem>
+                                <FluentButton IconStart="@(new Icons.Filled.Size20.Dismiss())" OnClick="@(() => DeleteFavorite(item.Id))"></FluentButton>
+                            </FluentGridItem>
+                        </FluentGrid>
+                    </FluentCard>
+                </FluentGridItem>
+            }
+        </FluentGrid>
+    }
+    else
+    {
+        <FluentLabel Typo="Typography.Subject">У Вас нет избранных специалистов</FluentLabel>
+    }
+}
+else
+{
+    <FluentProgressRing/>
+}
+
+@code {
+    private List<User> FavoritesPro { get; set; }
+
+    private string? role;
+    private string? clientId = "0";
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (!String.IsNullOrEmpty(await JSRuntime.InvokeAsync<string>("getToken")))
+        {
+            var tokenHandler = new JwtSecurityTokenHandler();
+
+            // Получение токена
+            var jwtToken = tokenHandler.ReadJwtToken(await JSRuntime.InvokeAsync<string>("getToken"));
+
+            // Получение роли из токена
+            var roleClaim = jwtToken.Claims.FirstOrDefault(claim => claim.Type == "role");
+            role = roleClaim is not null ? roleClaim.Value : "2";
+
+            var idClaim = jwtToken.Claims.FirstOrDefault(claim => claim.Type == "nameid");
+            clientId = idClaim is not null ? idClaim.Value : "0";
+
+            if (role == "2")
+            {
+                FavoritesPro = await FavoriteAPI.GetFavorites(int.Parse(clientId));
+            }
+        }
+    }
+
+    private async Task DeleteFavorite(int proId)
+    {
+        await FavoriteAPI.DeleteFavorite(proId, int.Parse(clientId));
+        FavoritesPro.Remove(FavoritesPro.FirstOrDefault(f => f.Id == proId));
+        StateHasChanged();
+        FavoritesPro = await FavoriteAPI.GetFavorites(int.Parse(clientId));
+    }
+}

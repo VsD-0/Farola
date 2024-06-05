@@ -4,6 +4,7 @@ using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.EntityFrameworkCore;
+using System.Security.Cryptography;
 
 namespace Farola.API.Infrastructure.Commands
 {
@@ -119,7 +120,24 @@ namespace Farola.API.Infrastructure.Commands
                 SpecializationId = request.Specialization
             };
 
+            var salt = BCrypt.Net.BCrypt.GenerateSalt(12);
+            var passwordHash = BCrypt.Net.BCrypt.HashPassword(request.Password, salt);
+            newUser.Password = passwordHash;
+
+            var refreshToken = GenerateRefreshToken();
+            newUser.RefreshToken = refreshToken;
+
             await _context.Users.AddAsync(newUser, cancellationToken);
+            await _context.SaveChangesAsync(cancellationToken);
+
+            var refreshTokenEntry = new RefreshToken
+            {
+                Userid = newUser.Id,
+                Createdat = DateTime.UtcNow,
+                Expiresat = DateTime.UtcNow.AddDays(30),
+                Token = refreshToken
+            };
+            await _context.RefreshTokens.AddAsync(refreshTokenEntry, cancellationToken);
             await _context.SaveChangesAsync(cancellationToken);
 
             return new UserDTO
@@ -135,8 +153,20 @@ namespace Farola.API.Infrastructure.Commands
                 Photo = newUser.Photo,
                 Information = request.Information,
                 Specialization = (await _context.Specializations.SingleOrDefaultAsync(s => s.Id == newUser.SpecializationId, cancellationToken))?.Name,
-                Profession = request.Profession
+                Profession = request.Profession,
+                RefreshToken = refreshToken
             };
+        }
+
+        private string GenerateRefreshToken()
+        {
+            var randomNumber = new byte[32];
+            using (var rng = RandomNumberGenerator.Create())
+            {
+                rng.GetBytes(randomNumber);
+            }
+
+            return Convert.ToBase64String(randomNumber);
         }
     }
 }

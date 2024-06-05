@@ -3,6 +3,7 @@ using Farola.API.Infrastructure.Queries;
 using Farola.Database.Models;
 using Farola.Domain.Models;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Net;

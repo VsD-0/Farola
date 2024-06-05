@@ -32,6 +32,10 @@
                     else
                     {
                         <FluentNavLink Href="@($"/statements/{CurrentUser.Id}")" IconColor="Color.Accent">Заявления</FluentNavLink>
+                        if (CurrentUser.Role == "2")
+                        {
+                            <FluentNavLink Href="@($"/favorites")" IconColor="Color.Accent">Избранные</FluentNavLink>
+                        }
                         <FluentMenuItem OnClick="SignOut">Выйти</FluentMenuItem>
                     }
                 </FluentNavMenu>
@@ -89,7 +93,7 @@
         CurrentUser.Role = null;
 
         TokenStorage.Token = null;
-        await JsRuntime.InvokeVoidAsync("setToken", null);
+        await JsRuntime.InvokeVoidAsync("setToken", "");
 
         Navigation.NavigateTo("/");
     }

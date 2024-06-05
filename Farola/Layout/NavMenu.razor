@@ -11,17 +11,16 @@
 @* See all the diffeent ways on how to use icons at https://www.fluentui-blazor.net/Icon *@
 
 <nav>
-    <FluentNavMenu Width="250" Collapsible="true" Title="Custom navigation menu">
-        <FluentNavLink Href="/" Match="NavLinkMatch.All" Icon="@Icon.FromImageUrl("/images/home.svg")" IconColor="Color.Accent">Главная</FluentNavLink>
-        <FluentNavLink Href="/professional/all/search" IconColor="Color.Accent">Специалисты</FluentNavLink>
+    <FluentNavMenu Width="250" Collapsible="true" Title="Custom navigation menu" @bind-Expanded=isOpen>
+        <FluentNavLink Href="/" Match="NavLinkMatch.All" Icon="@Icon.FromImageUrl("/images/home.svg")" IconColor="Color.Accent" Style="font-size: 1.4em">Главная</FluentNavLink>
+        <FluentNavLink Href="/professional/all/search" Icon="@Icon.FromImageUrl("/images/specializations.svg")" IconColor="Color.Accent" Style="font-size: 1.4em">Специалисты</FluentNavLink>
         @if (CurrentUser.Role == "1")
         {
-            <FluentNavLink Href="@($"/statements/{CurrentUser.Id}")" IconColor="Color.Accent">Заявления</FluentNavLink>
+            <FluentNavLink Href="@($"/statements/{CurrentUser.Id}")" IconColor="Color.Accent" Style="font-size: 1.4em">Заявления</FluentNavLink>
         }
-        @if (specs != null)
+        @if (specsList != null && isOpen)
         {
             <FluentListbox TOption="SpecStat"
-            Label="Специализации"
             Items="@specsList"
             Id="spec-listbox"
             Height="150%"
@@ -31,29 +30,23 @@
             @bind-Value="@SelectedValue"
             @bind-SelectedOption="@SelectedItem">
                 <OptionTemplate>
-                     @context.Spec.Name
-                     (@context.Count)
+                     <span style="font-size: 18px;">@context.Spec.Name</span>
+                     <span style="font-size: 18px;">(@context.Count)</span>
                 </OptionTemplate>
             </FluentListbox>
         }
         else
         {
-            <FluentProgressRing />
+            if (isOpen)
+            {
+                <FluentProgressRing />
+            }
         }
     </FluentNavMenu>
 </nav>
 
-<!--
-
-@if (TokenStorage.Token is not null && role == "1")
-{
-            <FluentButton OnClick="Stats">Заявки</FluentButton>
-}
--->
-
 @code{
     private List<SpecStat> specsList;
-    private List<Specialization> specs;
     private List<int> countSpecs;
     private string selectedValue;
     private string SelectedValue 
@@ -71,12 +64,13 @@
     }
     private SpecStat SelectedItem {get; set;}
 
+    private bool isOpen;
+
     private string? role = "2";
     private string? userId = "0";
 
     protected override async Task OnInitializedAsync()
     {
-        specs = (await ProfessionalAPI.GetSpecializations()).ToList();
         specsList = (await ProfessionalAPI.GetSpecStats()).ToList();
 
         if (!String.IsNullOrEmpty(await JsRuntime.InvokeAsync<string>("getToken")))

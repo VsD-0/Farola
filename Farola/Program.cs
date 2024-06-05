@@ -7,7 +7,6 @@ using Microsoft.FluentUI.AspNetCore.Components;
 using Refit;
 
 // API https://localhost:7091
-// Blazor API https://localhost:7227
 var builder = WebAssemblyHostBuilder.CreateDefault(args);
 builder.RootComponents.Add<App>("#app");
 builder.RootComponents.Add<HeadOutlet>("head::after");
@@ -16,7 +15,7 @@ builder.Services.AddTransient<TokenHandler>();
 
 Action<HttpClient> refitHttp = c =>
 {
-    c.BaseAddress = new Uri("https://localhost:7227/api");
+    c.BaseAddress = new Uri("https://localhost:7091/api");
 };
 
 builder.Services
@@ -35,6 +34,11 @@ builder.Services
 
 builder.Services
     .AddRefitClient<IStatementClient>()
+    .AddHttpMessageHandler<TokenHandler>()
+    .ConfigureHttpClient(refitHttp);
+
+builder.Services
+    .AddRefitClient<IFavoriteClient>()
     .AddHttpMessageHandler<TokenHandler>()
     .ConfigureHttpClient(refitHttp);
 

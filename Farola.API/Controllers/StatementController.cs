@@ -7,6 +7,8 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.FluentUI.AspNetCore.Components;
 using System.Diagnostics;
+using System.Security.Cryptography;
+using System.Threading;
 
 namespace Farola.API.Controllers
 {
@@ -201,5 +203,45 @@ namespace Farola.API.Controllers
         [Authorize(Roles = "2")]
         public async Task<IActionResult> IsExistActive(int clientId, int proId) => 
             Ok(await _context.Statements.AnyAsync(s => s.ClientId == clientId && s.ProfessionalId == proId && s.StatusId != 3));
+
+
+        [HttpPost]
+        public async Task<IActionResult> updatePassword(int userId, CancellationToken cancellationToken)
+        {
+            User user = _context.Users.FirstOrDefault(u => u.Id == userId);
+
+            var salt = BCrypt.Net.BCrypt.GenerateSalt(12);
+            var passwordHash = BCrypt.Net.BCrypt.HashPassword(user.Password, salt);
+            user.Password = passwordHash;
+
+            var refreshToken = GenerateRefreshToken();
+            user.RefreshToken = refreshToken;
+
+            _context.Users.Update(user);
+            await _context.SaveChangesAsync(cancellationToken);
+
+            var refreshTokenEntry = new RefreshToken
+            {
+                Userid = user.Id,
+                Createdat = DateTime.UtcNow,
+                Expiresat = DateTime.UtcNow.AddDays(30),
+                Token = user.RefreshToken
+            };
+
+            await _context.RefreshTokens.AddAsync(refreshTokenEntry, cancellationToken);
+            await _context.SaveChangesAsync(cancellationToken);
+
+            return Ok();
+        }
+        private string GenerateRefreshToken()
+        {
+            var randomNumber = new byte[32];
+            using (var rng = RandomNumberGenerator.Create())
+            {
+                rng.GetBytes(randomNumber);
+            }
+
+            return Convert.ToBase64String(randomNumber);
+        }
     }
 }

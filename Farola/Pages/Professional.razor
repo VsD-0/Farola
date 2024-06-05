@@ -6,58 +6,134 @@
 @using System.IdentityModel.Tokens.Jwt
 @inject IProfessionalClient ProfessionalAPI
 @inject IStatementClient StatementAPI
+@inject IFavoriteClient FavoriteAPI
 @inject IUserClient UserAPI
 @inject IJSRuntime JSRuntime
+@inject IDialogService DialogService
+@inject IToastService ToastService
 
-<a onclick="history.back();">&lt; Вернуться к списку</a>
 @if (User != null)
 {
     <PageTitle>@User.Surname @User.Name @User.Patronymic</PageTitle>
-    <FluentStack Orientation="Orientation.Vertical">
-        <FluentLabel Typo="Typography.H2">@User.Profession</FluentLabel>
-        <FluentLabel Typo="Typography.H4">@User.Specialization</FluentLabel>
-        <FluentStack Orientation="Orientation.Vertical">
-            <FluentPersona Image="@(new Icons.Filled.Size48.Person().ToDataUri(size: "40px", color: "white"))" ImageSize="80px"></FluentPersona>
-            <FluentStack Orientation="Orientation.Vertical">
-                <FluentLabel>@User.Surname @User.Name @User.Patronymic</FluentLabel>
-                <FluentLabel>Рейтинг: @(Rating ?? "Отсутствует")</FluentLabel>
-                <FluentLabel>Количество оценок: @(Reviews.Count() == 0 ? "0" : Reviews.Count())</FluentLabel>
-                @if (JSRuntime.InvokeAsync<string>("getToken") != null && role == "2")
-                {
-                    <FluentButton Disabled=@existStatement OnClick="@(p => SendStatement())">Подать заявку</FluentButton>
-                }
-            </FluentStack>
-            <FluentStack Orientation="Orientation.Vertical">
-                <FluentLabel>@User.Information</FluentLabel>
-            </FluentStack>
-            <FluentStack Orientation="Orientation.Vertical">
-                <FluentLabel>Отзывы:</FluentLabel>
+    <FluentGrid AdaptiveRendering="true" Spacing="1">
+        <FluentGridItem xxl="12" xl="12" lg="12" md="12" sm="12" xs="12" Justify="JustifyContent.Center">
+            <FluentLabel Typo="Typography.H2">@User.Profession</FluentLabel>
+        </FluentGridItem>
+        <FluentGridItem xxl="12" xl="12" lg="12" md="12" sm="12" xs="12" Justify="JustifyContent.Center">
+            <FluentLabel Typo="Typography.H5">@User.Specialization</FluentLabel>
+        </FluentGridItem>
+        <FluentGridItem xxl="12" xl="12" lg="12" md="12" sm="12" xs="12" Justify="JustifyContent.Center">
+            <FluentSpacer/>
+        </FluentGridItem>
+        <FluentGridItem xxl="6" xl="6" lg="6" md="12" sm="12" xs="12">
+            <FluentGrid AdaptiveRendering="true">
+                <FluentGridItem xxl="2" xl="2" lg="2" md="2" sm="2" xs="2">
+                    <FluentPersona Image="@(new Icons.Filled.Size48.Person().ToDataUri(size: "40px", color: "white"))" ImageSize="80px"></FluentPersona>
+                </FluentGridItem>
+                <FluentGridItem xxl="10" xl="10" lg="10" md="10" sm="10" xs="10" Justify="JustifyContent.FlexStart">
+                    <FluentStack Orientation="Orientation.Horizontal">
+                        <FluentLabel Typo="Typography.H5">@User.Surname @User.Name @User.Patronymic</FluentLabel>
+                        @if (role == "2")
+                        {
+                            @if (isFavorite)
+                            {
+                                <FluentButton IconStart="@(new Icons.Filled.Size20.Heart())" OnClick="ChangeFavoriteStatus"></FluentButton>
+                            }
+                            else
+                            {
+                                <FluentButton IconStart="@(new Icons.Regular.Size20.Heart())" OnClick="ChangeFavoriteStatus"></FluentButton>
+                            }
+                        }
+                    </FluentStack>
+                 </FluentGridItem>
+                <FluentGridItem xxl="12" xl="12" lg="12" md="12" sm="12" xs="12" Justify="JustifyContent.FlexStart">
+                    <FluentStack Orientation="Orientation.Horizontal">
+                        <FluentLabel Typo="Typography.Subject">Рейтинг: @(Rating ?? "Отсутствует")</FluentLabel>
+                        @if (Rating != null)
+                        {
+                            <FluentIcon Value="@(new Icons.Filled.Size20.StarEmphasis())" Title="StarEmphasis" Color="Color.Accent" />
+                        }
+                    </FluentStack>
+                </FluentGridItem>
+                <FluentGridItem xxl="12" xl="12" lg="12" md="12" sm="12" xs="12" Justify="JustifyContent.FlexStart">
+                    <FluentLabel Typo="Typography.Subject">Количество оценок: @(Reviews.Count() == 0 ? "0" : Reviews.Count())</FluentLabel>
+                </FluentGridItem>
+                <FluentGridItem xxl="12" xl="12" lg="12" md="12" sm="12" xs="12">
+                    @if (role == "2")
+                    {
+                        <FluentButton Appearance="Appearance.Accent" Disabled=@existStatement OnClick="@(p => SendStatement())">@(!existStatement ? "Подать заявку" : "У Вас уже есть активная заявка")</FluentButton>
+                    }
+                </FluentGridItem>
+                <FluentGridItem xxl="12" xl="12" lg="12" md="12" sm="12" xs="12">
+                    <FluentLabel Typo="Typography.Subject">@User.Information</FluentLabel>
+                </FluentGridItem>
+            </FluentGrid>
+        </FluentGridItem>
+        <FluentGridItem xxl="6" xl="6" lg="6" md="12" sm="12" xs="12">
+            <FluentGrid AdaptiveRendering="true">
+                <FluentGridItem xxl="12" xl="12" lg="12" md="12" sm="12" xs="12">
+                    <FluentLabel Typo="Typography.H5">Отзывы:</FluentLabel>
+                </FluentGridItem>
+                <FluentGridItem xxl="12" xl="12" lg="12" md="12" sm="12" xs="12">
+
                 @if (Reviews != null)
                 {
                     if (Reviews.Count() != 0)
                     {
-                        foreach (var item in Reviews)
-                        {
-                            <FluentCard>
-                                <FluentLabel>@item.Client.Surname @item.Client.Name @item.Client.Patronymic</FluentLabel>
-                                <FluentLabel>@item.Grade</FluentLabel>
-                                <FluentLabel>@item.Text</FluentLabel>
-                                <FluentLabel>@item.DateAdded</FluentLabel>
-                            </FluentCard>
-                        }
+                            <FluentGrid AdaptiveRendering="true">
+                            @foreach (var item in Reviews)
+                            {
+                                    <FluentGridItem xxl="12" xl="12" lg="12" md="12" sm="12" xs="12">
+                                    <FluentCard>
+                                        <FluentGrid AdaptiveRendering="true">
+                                            <FluentGridItem xxl="12" xl="12" lg="12" md="12" sm="12" xs="12">
+                                                <FluentLabel>@item.Client.Surname @item.Client.Name @item.Client.Patronymic</FluentLabel>
+                                            </FluentGridItem>
+                                            <FluentGridItem xxl="12" xl="12" lg="12" md="12" sm="12" xs="12">
+                                                <FluentStack Orientation="Orientation.Horizontal">
+                                                <FluentLabel>@item.Grade</FluentLabel>
+                                                        @for (int i = 0; i < Math.Ceiling(item.Grade); i++)
+                                                        {
+                                                            if (i == Math.Floor(item.Grade))
+                                                            {
+                                                                <FluentIcon Value="@(new Icons.Filled.Size20.StarHalf())" Title="StarHalf" />
+                                                            }
+                                                            else if (i == 4)
+                                                            {
+                                                                <FluentIcon Value="@(new Icons.Filled.Size20.StarEmphasis())" Title="StarEmphasis" Color="Color.Accent" />
+                                                            }
+                                                            else
+                                                            {
+                                                                <FluentIcon Value="@(new Icons.Filled.Size20.Star())" Title="Star" Color="Color.Accent" />
+                                                            }
+                                                        }
+                                                </FluentStack>
+                                            </FluentGridItem>
+                                            <FluentGridItem xxl="12" xl="12" lg="12" md="12" sm="12" xs="12">
+                                                <FluentLabel>@item.Text</FluentLabel>
+                                            </FluentGridItem>
+                                            <FluentGridItem xxl="12" xl="12" lg="12" md="12" sm="12" xs="12">
+                                                <FluentLabel>@item.DateAdded</FluentLabel>
+                                            </FluentGridItem>
+                                        </FluentGrid>
+                                    </FluentCard>
+                                </FluentGridItem>
+                            }
+                        </FluentGrid>
                     }
                     else
                     {
-                        <FluentLabel>Отзывы отсутствуют</FluentLabel> 
+                            <FluentLabel>Отзывы отсутствуют</FluentLabel>
                     }
                 }
                 else
                 {
-                    <FluentProgressRing/>
+                        <FluentProgressRing/>
                 }
-            </FluentStack>
-        </FluentStack>
-    </FluentStack>
+                </FluentGridItem>
+            </FluentGrid>
+        </FluentGridItem>
+    </FluentGrid>
 }
 else
 {
@@ -73,9 +149,12 @@ else
     public string? Rating { get; set; }
     public List<ReviewViewModel> Reviews { get; set; }
 
-    private string? role = "2";
+    private string? role;
     private string? clientId = "0";
     private bool existStatement;
+    private bool isFavorite;
+
+    bool? canceled;
 
     protected override async Task OnInitializedAsync()
     {
@@ -109,13 +188,48 @@ else
             clientId = idClaim is not null ? idClaim.Value : "0";
 
             if (role == "2")
+            {
                 existStatement = await StatementAPI.IsExistActive(int.Parse(clientId), User.Id);
+                isFavorite = await FavoriteAPI.IsFavorite(User.Id, int.Parse(clientId));
+            }
         }
     }
 
     private async Task SendStatement()
     {
-        await StatementAPI.SendStatement(new ViewModels.SendStatement { ClientId = int.Parse(clientId), ProfessionalId = User.Id  });
-        existStatement = true;
+        var dialog = await DialogService.ShowMessageBoxAsync(new DialogParameters<MessageBoxContent>()
+            {
+                Content = new()
+                {
+                    Title = "Подтверждение",
+                    MarkupMessage = new MarkupString("<h4>Вы уверены, что хотите подать заявку?</h4>"),
+                    Icon = new Icons.Regular.Size24.Warning(),
+                    IconColor = Color.Warning,
+                },
+                PrimaryAction = "Да",
+                SecondaryAction = "Нет",
+                Width = "300px"
+            });
+        var result = await dialog.Result;
+        canceled = result.Cancelled;
+        if (canceled == false)
+        {
+            await StatementAPI.SendStatement(new ViewModels.SendStatement { ClientId = int.Parse(clientId), ProfessionalId = User.Id });
+            existStatement = true;
+            ToastService.ShowSuccess("Заявка подана");
+        }
+    }
+    private async Task ChangeFavoriteStatus()
+    {
+        if (isFavorite)
+        {
+            await FavoriteAPI.DeleteFavorite(User.Id, int.Parse(clientId));
+            isFavorite = false;
+        }
+        else
+        {
+            await FavoriteAPI.AddFavorite(User.Id, int.Parse(clientId));
+            isFavorite = true; 
+        }
     }
 }

@@ -1,9 +1,13 @@
 ﻿using Farola.API.Infrastructure.Commands;
 using Farola.API.Infrastructure.Exceptions;
 using Farola.API.Infrastructure.Queries;
+using Farola.Database.Models;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using System.Security.Cryptography;
+using System.Threading;
 
 namespace Farola.API.Controllers
 {
