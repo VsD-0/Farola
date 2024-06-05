@@ -18,7 +18,7 @@
                     <FluentCard>
                         <FluentGrid>
                             <FluentGridItem>
-                                <FluentPersona Image="@(new Icons.Filled.Size48.Person().ToDataUri(size: "40px", color: "white"))" ImageSize="80px"></FluentPersona>
+                                <FluentPersona Image="@(item.Photo == null ? new Icons.Filled.Size48.Person().ToDataUri(size: "40px", color: "white") : $"/images/professionals/{item.Photo}")" ImageSize="80px"></FluentPersona>
                             </FluentGridItem>
                             <FluentGridItem>
                                 @item.Profession

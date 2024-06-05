@@ -99,10 +99,10 @@
                                 @if (role == "1")
                                 {
                                     <FluentGridItem xxl="12" xl="12" lg="12" md="12" sm="12" xs="12">
-                                        <FluentTextArea Spellcheck=true Resize="TextAreaResize.Vertical" Placeholder="Введите комментарий..." Rows="5" Style="width: 100%; font-size: 14pt" @bind-Value=item.Comment></FluentTextArea>
+                                        <FluentTextArea Spellcheck=true Resize="TextAreaResize.Vertical" Placeholder="Введите примечание..." Rows="5" Style="width: 100%; font-size: 14pt" @bind-Value=item.Comment></FluentTextArea>
                                     </FluentGridItem>
                                     <FluentGridItem xxl="6" xl="6" lg="6" md="6" sm="6" xs="6" Justify="JustifyContent.FlexStart">
-                                            <FluentButton OnClick="@(() => SaveComment(item.Id, item.Comment))">Сохранить комментарий</FluentButton>
+                                            <FluentButton OnClick="@(() => SaveComment(item.Id, item.Comment))">Сохранить примечаниие</FluentButton>
                                     </FluentGridItem>
                                 }
                                 @if (role == "2" && item.Status == "Завершено")

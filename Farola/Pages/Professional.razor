@@ -28,7 +28,7 @@
         <FluentGridItem xxl="6" xl="6" lg="6" md="12" sm="12" xs="12">
             <FluentGrid AdaptiveRendering="true">
                 <FluentGridItem xxl="2" xl="2" lg="2" md="2" sm="2" xs="2">
-                    <FluentPersona Image="@(new Icons.Filled.Size48.Person().ToDataUri(size: "40px", color: "white"))" ImageSize="80px"></FluentPersona>
+                    <FluentPersona Image="@(User.Photo == null ? new Icons.Filled.Size48.Person().ToDataUri(size: "40px", color: "white") : $"/images/professionals/{User.Photo}")" ImageSize="80px"></FluentPersona>
                 </FluentGridItem>
                 <FluentGridItem xxl="10" xl="10" lg="10" md="10" sm="10" xs="10" Justify="JustifyContent.FlexStart">
                     <FluentStack Orientation="Orientation.Horizontal">

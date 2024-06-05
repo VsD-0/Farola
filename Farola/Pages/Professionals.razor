@@ -48,7 +48,7 @@
                     <FluentCard>
                         <FluentGrid Spacing="1">
                             <FluentGridItem xxl="2" xl="2" lg="2" md="2" sm="2" xs="2" Justify="JustifyContent.FlexStart">
-                                <FluentPersona Image="@(new Icons.Filled.Size48.Person().ToDataUri(size: "60px", color: "white"))" ImageSize="80px"></FluentPersona>
+                                 <FluentPersona Image="@(item.Photo == null ? new Icons.Filled.Size48.Person().ToDataUri(size: "60px", color: "white") : $"/images/professionals/{item.Photo}")" ImageSize="80px"></FluentPersona>
                             </FluentGridItem>
                             <FluentGridItem xxl="10" xl="10" lg="10" md="10" sm="10" xs="10" Justify="JustifyContent.FlexStart">
                                 <FluentStack Orientation="Orientation.Vertical">

@@ -2,10 +2,42 @@
 @using Farola.API
 @using Farola.Database.Models
 @using Farola.ViewModels
+@using Refit
 @inject IProfessionalClient ProfessionalAPI
 @inject NavigationManager Navigation
+@inject IConfiguration config
 
 <h3>Регистрация</h3>
+
+<FluentInputFile @ref="@myFileByStream"
+                 AnchorId="MyUploadStream"
+                 DragDropZoneVisible="false"
+                 Mode="InputFileMode.Stream"
+                 Accept=".jpg"
+                 OnFileUploaded="@OnFileUploadedAsync"
+                 OnCompleted="@OnCompleted" />
+
+<FluentProgress Min="0" Max="100" Value="@progressPercent" Visible="@(progressPercent > 0)" />
+<FluentLabel Alignment="HorizontalAlignment.Center">
+    @progressTitle
+</FluentLabel>
+
+<FluentButton Appearance="Appearance.Accent" Id="MyUploadStream">
+    Загрузка фото
+</FluentButton>
+
+@if (Files.Any())
+{
+    <h4>File(s) uploaded:</h4>
+    <ul>
+        @foreach (var file in Files)
+        {
+            <li>
+                @file
+            </li>
+        }
+    </ul>
+}
 
 <FluentEditForm Model="@pro" OnSubmit="Submit">
     <FluentTextField Id="Surname" @bind-Value=pro.Surname Placeholder="Введите фамилию" Label="Фамилия" Required/>
@@ -32,6 +64,11 @@
     private IEnumerable<Specialization>? specs;
     private List<Option<string>>? specOptions;
     private Option<string>? spec = null;
+    FluentInputFile? myFileByStream = default!;
+    int? progressPercent;
+    string? progressTitle;
+
+    List<string> Files = new();
 
     protected override async Task OnInitializedAsync()
     {
@@ -44,6 +81,33 @@
                 Text = p.Name
             }).ToList();
     }
+
+    async Task OnFileUploadedAsync(FluentInputFileEventArgs file)
+    {
+        progressPercent = file.ProgressPercent;
+        progressTitle = file.ProgressTitle;
+
+        var fileName = Path.ChangeExtension(Path.GetRandomFileName(), Path.GetExtension(file.Name));
+        var filePath = Path.Combine(config.GetValue<string>("FileStorage")!, "pro", fileName);
+
+        Directory.CreateDirectory(Path.Combine(config.GetValue<string>("FileStorage")!, "pro"));
+        var p = Path.Combine(config.GetValue<string>("FileStorage")!) + "\\pro";
+        var a = Directory.Exists(p);
+
+        Files.Add(filePath);
+
+        await using FileStream fs = new(filePath, FileMode.Create);
+        await file.Stream!.CopyToAsync(fs);
+        await file.Stream!.DisposeAsync();
+        new StreamPart(file.Stream, fileName, "image/jpeg");
+    }
+
+    void OnCompleted(IEnumerable<FluentInputFileEventArgs> files)
+    {
+        progressPercent = myFileByStream!.ProgressPercent;
+        progressTitle = myFileByStream!.ProgressTitle;
+    }
+
     private async Task Submit()
     {
         pro.Specialization = int.Parse(spec.Value);
