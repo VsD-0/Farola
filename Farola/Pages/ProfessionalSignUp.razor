@@ -9,35 +9,15 @@
 
 <h3>Регистрация</h3>
 
-<FluentInputFile @ref="@myFileByStream"
-                 AnchorId="MyUploadStream"
-                 DragDropZoneVisible="false"
-                 Mode="InputFileMode.Stream"
-                 Accept=".jpg"
-                 OnFileUploaded="@OnFileUploadedAsync"
-                 OnCompleted="@OnCompleted" />
+<InputFile OnChange="@OnFileUploadedAsync" />
 
-<FluentProgress Min="0" Max="100" Value="@progressPercent" Visible="@(progressPercent > 0)" />
-<FluentLabel Alignment="HorizontalAlignment.Center">
-    @progressTitle
-</FluentLabel>
-
+<div id="previewImage" style="display: none;"></div>
+<FluentStack>
+     <FluentPersona Image="@(selectedImage == null ? new Icons.Filled.Size48.Person().ToDataUri(size: "40px", color: "white") : selectedImage)" ImageSize="80px"></FluentPersona>
 <FluentButton Appearance="Appearance.Accent" Id="MyUploadStream">
     Загрузка фото
 </FluentButton>
-
-@if (Files.Any())
-{
-    <h4>File(s) uploaded:</h4>
-    <ul>
-        @foreach (var file in Files)
-        {
-            <li>
-                @file
-            </li>
-        }
-    </ul>
-}
+</FluentStack>
 
 <FluentEditForm Model="@pro" OnSubmit="Submit">
     <FluentTextField Id="Surname" @bind-Value=pro.Surname Placeholder="Введите фамилию" Label="Фамилия" Required/>
@@ -70,6 +50,11 @@
 
     List<string> Files = new();
 
+    InputFileChangeEventArgs photo;
+
+    private string? selectedImage;
+    private string selectedImagePath = "images/professionals/placeholder.jpg";
+
     protected override async Task OnInitializedAsync()
     {
         specs = await ProfessionalAPI.GetSpecializations();
@@ -82,24 +67,18 @@
             }).ToList();
     }
 
-    async Task OnFileUploadedAsync(FluentInputFileEventArgs file)
+    async Task OnFileUploadedAsync(InputFileChangeEventArgs file)
     {
-        progressPercent = file.ProgressPercent;
-        progressTitle = file.ProgressTitle;
+        photo = file;
 
-        var fileName = Path.ChangeExtension(Path.GetRandomFileName(), Path.GetExtension(file.Name));
-        var filePath = Path.Combine(config.GetValue<string>("FileStorage")!, "pro", fileName);
-
-        Directory.CreateDirectory(Path.Combine(config.GetValue<string>("FileStorage")!, "pro"));
-        var p = Path.Combine(config.GetValue<string>("FileStorage")!) + "\\pro";
-        var a = Directory.Exists(p);
-
-        Files.Add(filePath);
-
-        await using FileStream fs = new(filePath, FileMode.Create);
-        await file.Stream!.CopyToAsync(fs);
-        await file.Stream!.DisposeAsync();
-        new StreamPart(file.Stream, fileName, "image/jpeg");
+        if (file.File != null)
+        {
+            using var ms = new MemoryStream();
+            await file.File.OpenReadStream().CopyToAsync(ms);
+            var imageBytes = ms.ToArray();
+            selectedImage = $"data:image/jpeg;base64,{Convert.ToBase64String(imageBytes)}";
+            selectedImagePath = $"{Navigation.BaseUri}/images/temp/{Path.GetRandomFileName()}.jpg";
+        }
     }
 
     void OnCompleted(IEnumerable<FluentInputFileEventArgs> files)
@@ -110,8 +89,15 @@
 
     private async Task Submit()
     {
-        pro.Specialization = int.Parse(spec.Value);
-        await ProfessionalAPI.SignUp(pro);
-        Navigation.NavigateTo("/professional/all/search");
+        using var stream = photo.File.OpenReadStream();
+        var streamPart = new StreamPart(stream, Path.ChangeExtension(Path.GetRandomFileName(), Path.GetExtension(photo.File.Name)), "image/jpeg");
+
+        //pro.Specialization = int.Parse(spec.Value);
+        //var user = await ProfessionalAPI.SignUp(pro);
+        // if (user != null)
+        // {
+        await ProfessionalAPI.SaveImage(15, streamPart);
+        // }
+        //Navigation.NavigateTo("/professional/all/search");
     }
 }

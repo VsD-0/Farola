@@ -6,7 +6,9 @@ using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.VisualBasic;
 using System.Net;
+using System.Xml.Linq;
 
 
 namespace Farola.API.Controllers
@@ -20,11 +22,13 @@ namespace Farola.API.Controllers
     {
         private readonly IMediator _mediator;
         private readonly FarolaContext _context;
+        private readonly IConfiguration _config;
 
-        public ProfessionalController(IMediator mediator, FarolaContext context)
+        public ProfessionalController(IMediator mediator, FarolaContext context, IConfiguration config)
         {
             _mediator = mediator;
             _context = context;
+            _config = config;
         }
 
         [HttpGet("GetProfessionals")]
@@ -33,7 +37,7 @@ namespace Farola.API.Controllers
             return Ok(await _mediator.Send(new GetProfessionalsQuerie { PageNumber = pageNumber, PageSize = pageSize, Profession = profession, Specialization = specialization }));
         }
 
-        [HttpGet("GetProfessional/{id}")] 
+        [HttpGet("GetProfessional/{id}")]
         public async Task<IActionResult> GetProfessional(int id)
         {
             return Ok(await _context.Users.Where(u => u.Id == id)
@@ -50,6 +54,7 @@ namespace Farola.API.Controllers
                     RoleId = u.RoleId,
                     Surname = u.Surname,
                     Patronymic = u.Patronymic,
+                    SpecializationId = u.SpecializationId,
                     Specialization = _context.Specializations.FirstOrDefault(s => s.Id == u.SpecializationId)!.Name
                 })
                 .FirstOrDefaultAsync());
@@ -68,7 +73,7 @@ namespace Farola.API.Controllers
                 .Join(_context.Statements,
                 r => r.StatementId,
                 s => s.Id,
-                (r, s) => new {Review = r, Statement = s})
+                (r, s) => new { Review = r, Statement = s })
                 .Where(x => x.Statement.ProfessionalId == userId)
                 .Select(x => new ReviewViewModel
                 {
@@ -133,14 +138,14 @@ namespace Farola.API.Controllers
         [HttpGet("GetSpecStats")]
         public async Task<IActionResult> GetSpecStats()
         {
-            return Ok(_context.Users
+            return Ok(_context.Users.Where(u => u.IsClosed != true)
                 .Join(_context.Specializations,
                     u => u.SpecializationId,
                     sp => sp.Id,
                     (u, sp) => new { User = u, Spec = sp })
                 .Where(x => x.User.RoleId == 1)
                 .GroupBy(x => x.Spec.Name)
-                .Select(g => new SpecStat { Spec = g.Select(x => x.Spec).First(), Count = g.Count()})
+                .Select(g => new SpecStat { Spec = g.Select(x => x.Spec).First(), Count = g.Count() })
                 .OrderByDescending(x => x.Count)
                 .AsEnumerable());
         }
@@ -159,6 +164,59 @@ namespace Farola.API.Controllers
         {
             var pro = await _mediator.Send(registrationProCommand);
             return pro is not null ? Created(nameof(SignUp), pro) : BadRequest("Ошибка авторизации");
+        }
+
+        [HttpPost("SaveImage/{proId}")]
+        public async Task<IActionResult> SaveImage(int proId, IFormFile photo)
+        {
+            string path = Path.Combine(_config.GetValue<string>("FileStorage")!, photo.FileName);
+            await using (FileStream fs = new(path, FileMode.Create))
+            {
+                await photo.OpenReadStream().CopyToAsync(fs);
+            }
+
+            var user = await _context.Users.FirstOrDefaultAsync(u => u.Id == proId);
+            user.Photo = photo.FileName;
+            _context.Users.Update(user);
+            await _context.SaveChangesAsync();
+
+            return Ok();
+        }
+
+        [HttpPost("UpdatePro")]
+        [Authorize(Roles = "1")]
+        public async Task<IActionResult> UpdatePro([FromBody] UserDTO updatedUser)
+        {
+            var user = await _context.Users.SingleOrDefaultAsync(u => u.Id == updatedUser.Id);
+            user.Name = updatedUser.Name;
+            user.Surname = updatedUser.Surname;
+            user.Patronymic = updatedUser.Patronymic;
+            user.Area = updatedUser.Area;
+            user.Email = updatedUser.Email;
+            user.Information = updatedUser.Information;
+            user.PhoneNumber = updatedUser.PhoneNumber;
+            user.SpecializationId = updatedUser.SpecializationId;
+            user.Profession = updatedUser.Profession;
+            _context.Users.Update(user);
+            await _context.SaveChangesAsync();
+
+            return Ok();
+        }
+
+        [HttpGet("IsClosed/{proId}")]
+        [Authorize(Roles = "1, 2")]
+        public async Task<IActionResult> IsClosed(int proId) =>
+            Ok(await _context.Users.Where(u => u.RoleId == 1).AnyAsync(u => u.Id == proId && u.IsClosed == true));
+
+        [HttpPost("UpdateStatus/{proId}")]
+        [Authorize(Roles = "1")]
+        public async Task<IActionResult> UpdateStatus(int proId)
+        {
+            var user = await _context.Users.SingleOrDefaultAsync(u => u.Id == proId);
+            user.IsClosed = !user.IsClosed;
+            _context.Users.Update(user);
+            await _context.SaveChangesAsync();
+            return Ok();
         }
     }
 }

@@ -48,6 +48,11 @@
         public string? Information { get; set; }
 
         /// <summary>
+        /// Идентификатор специализации
+        /// </summary>
+        public int? SpecializationId { get; set; }
+
+        /// <summary>
         /// Специализация
         /// </summary>
         public string? Specialization { get; set; }

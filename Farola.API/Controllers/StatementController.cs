@@ -198,11 +198,10 @@ namespace Farola.API.Controllers
         public async Task<IActionResult> IsExistGrade(int statementId) => 
             Ok(await _context.Reviews.AnyAsync(s => s.StatementId == statementId && s.Grade >= 1));
 
-        //TODO: ???
         [HttpGet("IsExistActive/{clientId}/{proId}")]
         [Authorize(Roles = "2")]
         public async Task<IActionResult> IsExistActive(int clientId, int proId) => 
-            Ok(await _context.Statements.AnyAsync(s => s.ClientId == clientId && s.ProfessionalId == proId && s.StatusId != 3));
+            Ok(await _context.Statements.AnyAsync(s => s.ClientId == clientId && s.ProfessionalId == proId && s.StatusId != 4));
 
 
         [HttpPost]

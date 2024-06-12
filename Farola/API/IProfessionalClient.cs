@@ -25,6 +25,19 @@ namespace Farola.API
         Task<IEnumerable<SpecStat>> GetSpecStats();
 
         [Post("/Professional/SignUp")]
-        Task<UserDTO> SignUp([Body] RegProfessional user);
+        Task<UserDTO> SignUp( [Body] RegProfessional user);
+
+        [Multipart]
+        [Post("/Professional/SaveImage/{proId}")]
+        Task SaveImage(int proId, [AliasAs("photo")] StreamPart stream);
+
+        [Post("/Professional/UpdatePro")]
+        Task UpdatePro(UserDTO updatedUser);
+
+        [Get("/Professional/IsClosed/{proId}")]
+        Task<bool> IsClosed(int proId);
+
+        [Post("/Professional/UpdateStatus/{proId}")]
+        Task UpdateStatus(int proId);
     }
 }

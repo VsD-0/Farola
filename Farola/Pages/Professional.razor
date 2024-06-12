@@ -4,6 +4,7 @@
 @using Farola.Domain.Models
 @using Farola.Infrastructure.Handlers
 @using System.IdentityModel.Tokens.Jwt
+@using Refit
 @inject IProfessionalClient ProfessionalAPI
 @inject IStatementClient StatementAPI
 @inject IFavoriteClient FavoriteAPI
@@ -11,135 +12,310 @@
 @inject IJSRuntime JSRuntime
 @inject IDialogService DialogService
 @inject IToastService ToastService
+@inject NavigationManager Navigation
 
 @if (User != null)
 {
-    <PageTitle>@User.Surname @User.Name @User.Patronymic</PageTitle>
-    <FluentGrid AdaptiveRendering="true" Spacing="1">
-        <FluentGridItem xxl="12" xl="12" lg="12" md="12" sm="12" xs="12" Justify="JustifyContent.Center">
-            <FluentLabel Typo="Typography.H2">@User.Profession</FluentLabel>
-        </FluentGridItem>
-        <FluentGridItem xxl="12" xl="12" lg="12" md="12" sm="12" xs="12" Justify="JustifyContent.Center">
-            <FluentLabel Typo="Typography.H5">@User.Specialization</FluentLabel>
-        </FluentGridItem>
-        <FluentGridItem xxl="12" xl="12" lg="12" md="12" sm="12" xs="12" Justify="JustifyContent.Center">
-            <FluentSpacer/>
-        </FluentGridItem>
-        <FluentGridItem xxl="6" xl="6" lg="6" md="12" sm="12" xs="12">
-            <FluentGrid AdaptiveRendering="true">
-                <FluentGridItem xxl="2" xl="2" lg="2" md="2" sm="2" xs="2">
-                    <FluentPersona Image="@(User.Photo == null ? new Icons.Filled.Size48.Person().ToDataUri(size: "40px", color: "white") : $"/images/professionals/{User.Photo}")" ImageSize="80px"></FluentPersona>
+    if (User.Id != int.Parse(clientId))
+    {
+        if (!isClosed)
+        {
+            <PageTitle>@User.Surname @User.Name @User.Patronymic</PageTitle>
+            <FluentGrid AdaptiveRendering="true" Spacing="1">
+                <FluentGridItem xxl="12" xl="12" lg="12" md="12" sm="12" xs="12" Justify="JustifyContent.Center">
+                    <FluentLabel Typo="Typography.H2">@User.Profession</FluentLabel>
                 </FluentGridItem>
-                <FluentGridItem xxl="10" xl="10" lg="10" md="10" sm="10" xs="10" Justify="JustifyContent.FlexStart">
-                    <FluentStack Orientation="Orientation.Horizontal">
-                        <FluentLabel Typo="Typography.H5">@User.Surname @User.Name @User.Patronymic</FluentLabel>
-                        @if (role == "2")
-                        {
-                            @if (isFavorite)
+                <FluentGridItem xxl="12" xl="12" lg="12" md="12" sm="12" xs="12" Justify="JustifyContent.Center">
+                    <FluentLabel Typo="Typography.H5">@User.Specialization</FluentLabel>
+                </FluentGridItem>
+                <FluentGridItem xxl="12" xl="12" lg="12" md="12" sm="12" xs="12" Justify="JustifyContent.Center">
+                    <FluentSpacer/>
+                </FluentGridItem>
+                <FluentGridItem xxl="6" xl="6" lg="6" md="12" sm="12" xs="12">
+                    <FluentGrid AdaptiveRendering="true">
+                        <FluentGridItem xxl="2" xl="2" lg="2" md="2" sm="2" xs="2">
+                            <FluentPersona Image="@(User.Photo == null ? new Icons.Filled.Size48.Person().ToDataUri(size: "40px", color: "white") : $"/images/professionals/{User.Photo}")" ImageSize="80px"></FluentPersona>
+                        </FluentGridItem>
+                        <FluentGridItem xxl="10" xl="10" lg="10" md="10" sm="10" xs="10" Justify="JustifyContent.FlexStart">
+                            <FluentStack Orientation="Orientation.Horizontal">
+                                <FluentLabel Typo="Typography.H5">@User.Surname @User.Name @User.Patronymic</FluentLabel>
+                                @if (role == "2")
+                                {
+                                    @if (isFavorite)
+                                    {
+                                        <FluentButton IconStart="@(new Icons.Filled.Size20.Heart())" OnClick="ChangeFavoriteStatus"></FluentButton>
+                                    }
+                                    else
+                                    {
+                                        <FluentButton IconStart="@(new Icons.Regular.Size20.Heart())" OnClick="ChangeFavoriteStatus"></FluentButton>
+                                    }
+                                }
+                            </FluentStack>
+                         </FluentGridItem>
+                        <FluentGridItem xxl="12" xl="12" lg="12" md="12" sm="12" xs="12" Justify="JustifyContent.FlexStart">
+                            <FluentStack Orientation="Orientation.Horizontal">
+                                <FluentLabel Typo="Typography.Subject">Рейтинг: @(Rating ?? "Отсутствует")</FluentLabel>
+                                @if (Rating != null)
+                                {
+                                    <FluentIcon Value="@(new Icons.Filled.Size20.StarEmphasis())" Title="StarEmphasis" Color="Color.Accent" />
+                                }
+                            </FluentStack>
+                        </FluentGridItem>
+                        <FluentGridItem xxl="12" xl="12" lg="12" md="12" sm="12" xs="12" Justify="JustifyContent.FlexStart">
+                            <FluentLabel Typo="Typography.Subject">Количество оценок: @(Reviews.Count() == 0 ? "0" : Reviews.Count())</FluentLabel>
+                        </FluentGridItem>
+                        <FluentGridItem xxl="12" xl="12" lg="12" md="12" sm="12" xs="12">
+                            @if (role == "2")
                             {
-                                <FluentButton IconStart="@(new Icons.Filled.Size20.Heart())" OnClick="ChangeFavoriteStatus"></FluentButton>
+                                <FluentButton Appearance="Appearance.Accent" Disabled=@existStatement OnClick="@(p => SendStatement())">@(!existStatement ? "Подать заявку" : "У Вас уже есть активная заявка")</FluentButton>
+                            }
+                        </FluentGridItem>
+                        <FluentGridItem xxl="12" xl="12" lg="12" md="12" sm="12" xs="12">
+                            <FluentLabel Typo="Typography.Subject">@User.Information</FluentLabel>
+                        </FluentGridItem>
+                    </FluentGrid>
+                </FluentGridItem>
+                <FluentGridItem xxl="6" xl="6" lg="6" md="12" sm="12" xs="12">
+                    <FluentGrid AdaptiveRendering="true">
+                        <FluentGridItem xxl="12" xl="12" lg="12" md="12" sm="12" xs="12">
+                            <FluentLabel Typo="Typography.H5">Отзывы:</FluentLabel>
+                        </FluentGridItem>
+                        <FluentGridItem xxl="12" xl="12" lg="12" md="12" sm="12" xs="12">
+
+                        @if (Reviews != null)
+                        {
+                            if (Reviews.Count() != 0)
+                            {
+                                    <FluentGrid AdaptiveRendering="true">
+                                    @foreach (var item in Reviews)
+                                    {
+                                            <FluentGridItem xxl="12" xl="12" lg="12" md="12" sm="12" xs="12">
+                                            <FluentCard>
+                                                <FluentGrid AdaptiveRendering="true">
+                                                    <FluentGridItem xxl="12" xl="12" lg="12" md="12" sm="12" xs="12">
+                                                        <FluentLabel>@item.Client.Surname @item.Client.Name @item.Client.Patronymic</FluentLabel>
+                                                    </FluentGridItem>
+                                                    <FluentGridItem xxl="12" xl="12" lg="12" md="12" sm="12" xs="12">
+                                                        <FluentStack Orientation="Orientation.Horizontal">
+                                                        <FluentLabel>@item.Grade</FluentLabel>
+                                                                @for (int i = 0; i < Math.Ceiling(item.Grade); i++)
+                                                                {
+                                                                    if (i == Math.Floor(item.Grade))
+                                                                    {
+                                                                        <FluentIcon Value="@(new Icons.Filled.Size20.StarHalf())" Title="StarHalf" />
+                                                                    }
+                                                                    else if (i == 4)
+                                                                    {
+                                                                        <FluentIcon Value="@(new Icons.Filled.Size20.StarEmphasis())" Title="StarEmphasis" Color="Color.Accent" />
+                                                                    }
+                                                                    else
+                                                                    {
+                                                                        <FluentIcon Value="@(new Icons.Filled.Size20.Star())" Title="Star" Color="Color.Accent" />
+                                                                    }
+                                                                }
+                                                        </FluentStack>
+                                                    </FluentGridItem>
+                                                    <FluentGridItem xxl="12" xl="12" lg="12" md="12" sm="12" xs="12">
+                                                        <FluentLabel>@item.Text</FluentLabel>
+                                                    </FluentGridItem>
+                                                    <FluentGridItem xxl="12" xl="12" lg="12" md="12" sm="12" xs="12">
+                                                        <FluentLabel>@item.DateAdded</FluentLabel>
+                                                    </FluentGridItem>
+                                                </FluentGrid>
+                                            </FluentCard>
+                                        </FluentGridItem>
+                                    }
+                                </FluentGrid>
                             }
                             else
                             {
-                                <FluentButton IconStart="@(new Icons.Regular.Size20.Heart())" OnClick="ChangeFavoriteStatus"></FluentButton>
+                                    <FluentLabel>Отзывы отсутствуют</FluentLabel>
                             }
                         }
-                    </FluentStack>
-                 </FluentGridItem>
-                <FluentGridItem xxl="12" xl="12" lg="12" md="12" sm="12" xs="12" Justify="JustifyContent.FlexStart">
-                    <FluentStack Orientation="Orientation.Horizontal">
-                        <FluentLabel Typo="Typography.Subject">Рейтинг: @(Rating ?? "Отсутствует")</FluentLabel>
-                        @if (Rating != null)
+                        else
                         {
-                            <FluentIcon Value="@(new Icons.Filled.Size20.StarEmphasis())" Title="StarEmphasis" Color="Color.Accent" />
+                                <FluentProgressRing/>
                         }
-                    </FluentStack>
-                </FluentGridItem>
-                <FluentGridItem xxl="12" xl="12" lg="12" md="12" sm="12" xs="12" Justify="JustifyContent.FlexStart">
-                    <FluentLabel Typo="Typography.Subject">Количество оценок: @(Reviews.Count() == 0 ? "0" : Reviews.Count())</FluentLabel>
-                </FluentGridItem>
-                <FluentGridItem xxl="12" xl="12" lg="12" md="12" sm="12" xs="12">
-                    @if (role == "2")
-                    {
-                        <FluentButton Appearance="Appearance.Accent" Disabled=@existStatement OnClick="@(p => SendStatement())">@(!existStatement ? "Подать заявку" : "У Вас уже есть активная заявка")</FluentButton>
-                    }
-                </FluentGridItem>
-                <FluentGridItem xxl="12" xl="12" lg="12" md="12" sm="12" xs="12">
-                    <FluentLabel Typo="Typography.Subject">@User.Information</FluentLabel>
+                        </FluentGridItem>
+                    </FluentGrid>
                 </FluentGridItem>
             </FluentGrid>
-        </FluentGridItem>
-        <FluentGridItem xxl="6" xl="6" lg="6" md="12" sm="12" xs="12">
-            <FluentGrid AdaptiveRendering="true">
-                <FluentGridItem xxl="12" xl="12" lg="12" md="12" sm="12" xs="12">
-                    <FluentLabel Typo="Typography.H5">Отзывы:</FluentLabel>
-                </FluentGridItem>
-                <FluentGridItem xxl="12" xl="12" lg="12" md="12" sm="12" xs="12">
-
-                @if (Reviews != null)
-                {
-                    if (Reviews.Count() != 0)
+        }
+        else
+        {
+            <FluentLabel>Специалист закрыл свой профиль</FluentLabel>
+        }
+    }
+    else if (User.Id == int.Parse(clientId) && role == "1")
+    {
+        <PageTitle>Личный профиль</PageTitle>
+        <FluentGrid AdaptiveRendering="true" Spacing="1">
+            <FluentGridItem xxl="12" xl="12" lg="12" md="12" sm="12" xs="12" Justify="JustifyContent.Center">
+                <FluentTextField @bind-Value=@User.Profession Placeholder="Введите профессию" Style="font-size: 12pt"></FluentTextField>
+            </FluentGridItem>
+            <FluentGridItem xxl="12" xl="12" lg="12" md="12" sm="12" xs="12" Justify="JustifyContent.Center">
+                <FluentCombobox Id="Specialization" 
+                                Items="@specOptions"
+                                TOption="Option<string>"
+                                OptionText="@(s => s.Text)"
+                                OptionValue="@(s => s.Value)"
+                                OptionSelected="@(s => s.Selected)"
+                                @bind-SelectedOption="@spec" />
+            </FluentGridItem>
+            <FluentGridItem xxl="12" xl="12" lg="12" md="12" sm="12" xs="12" Justify="JustifyContent.Center">
+                <FluentSpacer />
+            </FluentGridItem>
+            <FluentGridItem xxl="6" xl="6" lg="6" md="12" sm="12" xs="12">
+                <FluentGrid AdaptiveRendering="true">
+                    <div id="previewImage" style="display: none;"></div>
+                    @if (selectedImage == null)
                     {
-                            <FluentGrid AdaptiveRendering="true">
-                            @foreach (var item in Reviews)
-                            {
-                                    <FluentGridItem xxl="12" xl="12" lg="12" md="12" sm="12" xs="12">
-                                    <FluentCard>
-                                        <FluentGrid AdaptiveRendering="true">
-                                            <FluentGridItem xxl="12" xl="12" lg="12" md="12" sm="12" xs="12">
-                                                <FluentLabel>@item.Client.Surname @item.Client.Name @item.Client.Patronymic</FluentLabel>
-                                            </FluentGridItem>
-                                            <FluentGridItem xxl="12" xl="12" lg="12" md="12" sm="12" xs="12">
-                                                <FluentStack Orientation="Orientation.Horizontal">
-                                                <FluentLabel>@item.Grade</FluentLabel>
-                                                        @for (int i = 0; i < Math.Ceiling(item.Grade); i++)
-                                                        {
-                                                            if (i == Math.Floor(item.Grade))
-                                                            {
-                                                                <FluentIcon Value="@(new Icons.Filled.Size20.StarHalf())" Title="StarHalf" />
-                                                            }
-                                                            else if (i == 4)
-                                                            {
-                                                                <FluentIcon Value="@(new Icons.Filled.Size20.StarEmphasis())" Title="StarEmphasis" Color="Color.Accent" />
-                                                            }
-                                                            else
-                                                            {
-                                                                <FluentIcon Value="@(new Icons.Filled.Size20.Star())" Title="Star" Color="Color.Accent" />
-                                                            }
-                                                        }
-                                                </FluentStack>
-                                            </FluentGridItem>
-                                            <FluentGridItem xxl="12" xl="12" lg="12" md="12" sm="12" xs="12">
-                                                <FluentLabel>@item.Text</FluentLabel>
-                                            </FluentGridItem>
-                                            <FluentGridItem xxl="12" xl="12" lg="12" md="12" sm="12" xs="12">
-                                                <FluentLabel>@item.DateAdded</FluentLabel>
-                                            </FluentGridItem>
-                                        </FluentGrid>
-                                    </FluentCard>
-                                </FluentGridItem>
-                            }
-                        </FluentGrid>
+                        <FluentGridItem xxl="2" xl="2" lg="2" md="2" sm="2" xs="2">
+                            <FluentPersona Image="@(User.Photo == null ? new Icons.Filled.Size48.Person().ToDataUri(size: "40px", color: "white") : $"/images/professionals/{User.Photo}")" ImageSize="80px"></FluentPersona>
+                        </FluentGridItem>
                     }
                     else
                     {
-                            <FluentLabel>Отзывы отсутствуют</FluentLabel>
+                        <FluentGridItem xxl="2" xl="2" lg="2" md="2" sm="2" xs="2">
+                            <FluentPersona Image="selectedImage" ImageSize="80px"></FluentPersona>
+                        </FluentGridItem>
                     }
-                }
-                else
-                {
-                        <FluentProgressRing/>
-                }
-                </FluentGridItem>
-            </FluentGrid>
-        </FluentGridItem>
-    </FluentGrid>
+                    <FluentGridItem xxl="8" xl="8" lg="8" md="8" sm="8" xs="8" Justify="JustifyContent.FlexStart">
+                        <FluentStack Orientation="Orientation.Horizontal">
+                            <FluentTextField @bind-Value=@User.Surname Placeholder="Введите фамилию" Style="font-size: 12pt"></FluentTextField>
+                            <FluentTextField @bind-Value=@User.Name Placeholder="Введите Имя" Style="font-size: 12pt"></FluentTextField>
+                            <FluentTextField @bind-Value=@User.Patronymic Placeholder="Введите отчество" Style="font-size: 12pt"></FluentTextField>
+                        </FluentStack>
+                    </FluentGridItem>
+                    <FluentGridItem xxl="2" xl="2" lg="2" md="2" sm="2" xs="2" Justify="JustifyContent.FlexEnd">
+                        @if(isClosed)
+                        {
+                            <FluentLabel Color="Color.Error">Профиль закрыт</FluentLabel>
+                        }
+                        else
+                        {
+                            <FluentLabel Color="Color.Success">Профиль открыт</FluentLabel>
+                        }
+                    </FluentGridItem>
+                    <FluentGridItem xxl="12" xl="12" lg="12" md="12" sm="12" xs="12">
+                        <FluentStack>
+                            <FluentInputFile @ref="@myFileByStream"
+                                             AnchorId="MyUploadStream"
+                                             DragDropZoneVisible="false"
+                                             Mode="InputFileMode.Stream"
+                                             Accept=".jpg"
+                                             OnFileUploaded="@OnFileUploadedAsync"
+                                             OnCompleted="@OnCompleted" />
+                                <FluentButton Appearance="Appearance.Accent" Id="MyUploadStream">
+                                    Изменить фото
+                                </FluentButton>
+                            </FluentStack>
+                        </FluentGridItem>
+                    <FluentGridItem xxl="12" xl="12" lg="12" md="12" sm="12" xs="12" Justify="JustifyContent.FlexStart">
+                        <FluentStack Orientation="Orientation.Horizontal">
+                            <FluentLabel Typo="Typography.Subject">Рейтинг: @(Rating ?? "Отсутствует")</FluentLabel>
+                            @if (Rating != null)
+                            {
+                                <FluentIcon Value="@(new Icons.Filled.Size20.StarEmphasis())" Title="StarEmphasis" Color="Color.Accent" />
+                            }
+                        </FluentStack>
+                    </FluentGridItem>
+                    <FluentGridItem xxl="12" xl="12" lg="12" md="12" sm="12" xs="12" Justify="JustifyContent.FlexStart">
+                        <FluentLabel Typo="Typography.Subject">Количество оценок: @(Reviews.Count() == 0 ? "0" : Reviews.Count())</FluentLabel>
+                    </FluentGridItem>
+                    <FluentGridItem xxl="12" xl="12" lg="12" md="12" sm="12" xs="12" Justify="JustifyContent.FlexStart">
+                        <FluentTextField @bind-Value=@User.Email Placeholder="Введите электронную почту" Style="font-size: 12pt"></FluentTextField>
+                    </FluentGridItem>
+                    <FluentGridItem xxl="12" xl="12" lg="12" md="12" sm="12" xs="12" Justify="JustifyContent.FlexStart">
+                        <FluentTextField @bind-Value=@User.PhoneNumber Placeholder="Введите номер телефона" Style="font-size: 12pt"></FluentTextField>
+                    </FluentGridItem>
+                    <FluentGridItem xxl="12" xl="12" lg="12" md="12" sm="12" xs="12" Justify="JustifyContent.FlexStart">
+                        <FluentTextField @bind-Value=@User.Area Placeholder="Введите место работы" Style="font-size: 12pt"></FluentTextField>
+                    </FluentGridItem>
+                    <FluentGridItem xxl="12" xl="12" lg="12" md="12" sm="12" xs="12">
+                        <FluentTextArea Spellcheck=true Resize="TextAreaResize.Vertical" @bind-Value=@User.Information Placeholder="Введите информацию о себе" Rows="5" Style="width: 100%; font-size: 12pt"></FluentTextArea>
+                    </FluentGridItem>
+                    <FluentGridItem xxl="12" xl="12" lg="12" md="12" sm="12" xs="12">
+                        <FluentButton OnClick="SaveChanges">Сохранить изменения</FluentButton>
+                    </FluentGridItem>
+                    <FluentGridItem xxl="12" xl="12" lg="12" md="12" sm="12" xs="12">
+                        <FluentButton OnClick="ChangeProStatus">@(isClosed ? "Открыть профиль" : "Закрыть профиль")</FluentButton>
+                    </FluentGridItem>
+                </FluentGrid>
+            </FluentGridItem>
+            <FluentGridItem xxl="6" xl="6" lg="6" md="12" sm="12" xs="12">
+                <FluentGrid AdaptiveRendering="true">
+                    <FluentGridItem xxl="12" xl="12" lg="12" md="12" sm="12" xs="12">
+                        <FluentLabel Typo="Typography.H5">Отзывы:</FluentLabel>
+                    </FluentGridItem>
+                    <FluentGridItem xxl="12" xl="12" lg="12" md="12" sm="12" xs="12">
+
+                        @if (Reviews != null)
+                        {
+                            if (Reviews.Count() != 0)
+                            {
+                                <FluentGrid AdaptiveRendering="true">
+                                    @foreach (var item in Reviews)
+                                    {
+                                        <FluentGridItem xxl="12" xl="12" lg="12" md="12" sm="12" xs="12">
+                                            <FluentCard>
+                                                <FluentGrid AdaptiveRendering="true">
+                                                    <FluentGridItem xxl="12" xl="12" lg="12" md="12" sm="12" xs="12">
+                                                        <FluentLabel>@item.Client.Surname @item.Client.Name @item.Client.Patronymic</FluentLabel>
+                                                    </FluentGridItem>
+                                                    <FluentGridItem xxl="12" xl="12" lg="12" md="12" sm="12" xs="12">
+                                                        <FluentStack Orientation="Orientation.Horizontal">
+                                                            <FluentLabel>@item.Grade</FluentLabel>
+                                                            @for (int i = 0; i < Math.Ceiling(item.Grade); i++)
+                                                            {
+                                                                if (i == Math.Floor(item.Grade))
+                                                                {
+                                                                    <FluentIcon Value="@(new Icons.Filled.Size20.StarHalf())" Title="StarHalf" />
+                                                                }
+                                                                else if (i == 4)
+                                                                {
+                                                                    <FluentIcon Value="@(new Icons.Filled.Size20.StarEmphasis())" Title="StarEmphasis" Color="Color.Accent" />
+                                                                }
+                                                                else
+                                                                {
+                                                                    <FluentIcon Value="@(new Icons.Filled.Size20.Star())" Title="Star" Color="Color.Accent" />
+                                                                }
+                                                            }
+                                                        </FluentStack>
+                                                    </FluentGridItem>
+                                                    <FluentGridItem xxl="12" xl="12" lg="12" md="12" sm="12" xs="12">
+                                                        <FluentLabel>@item.Text</FluentLabel>
+                                                    </FluentGridItem>
+                                                    <FluentGridItem xxl="12" xl="12" lg="12" md="12" sm="12" xs="12">
+                                                        <FluentLabel>@item.DateAdded</FluentLabel>
+                                                    </FluentGridItem>
+                                                </FluentGrid>
+                                            </FluentCard>
+                                        </FluentGridItem>
+                                    }
+                                </FluentGrid>
+                            }
+                            else
+                            {
+                                <FluentLabel>Отзывы отсутствуют</FluentLabel>
+                            }
+                        }
+                        else
+                        {
+                            <FluentProgressRing />
+                        }
+                    </FluentGridItem>
+                </FluentGrid>
+            </FluentGridItem>
+        </FluentGrid>
+    }
 }
 else
 {
     <PageTitle>Пользователь не найден</PageTitle>
     <FluentLabel>Пользователь не найден</FluentLabel>
 }
+
 
 @code {
     [Parameter]
@@ -149,10 +325,23 @@ else
     public string? Rating { get; set; }
     public List<ReviewViewModel> Reviews { get; set; }
 
+    private IEnumerable<Specialization>? specs;
+    private List<Option<string>>? specOptions;
+    private Option<string>? spec = null;
+
     private string? role;
     private string? clientId = "0";
     private bool existStatement;
     private bool isFavorite;
+    private bool isClosed = false;
+
+    FluentInputFile? myFileByStream = default!;
+    int? progressPercent;
+    string? progressTitle;
+    FluentInputFileEventArgs photo;
+
+    private string? selectedImage;
+    private string selectedImagePath = "images/professionals/placeholder.jpg";
 
     bool? canceled;
 
@@ -187,10 +376,24 @@ else
             var idClaim = jwtToken.Claims.FirstOrDefault(claim => claim.Type == "nameid");
             clientId = idClaim is not null ? idClaim.Value : "0";
 
+            isClosed = await ProfessionalAPI.IsClosed(User.Id);
+
             if (role == "2")
             {
                 existStatement = await StatementAPI.IsExistActive(int.Parse(clientId), User.Id);
                 isFavorite = await FavoriteAPI.IsFavorite(User.Id, int.Parse(clientId));
+            }
+            else if (User.Id ==  int.Parse(clientId) && role == "1")
+            {
+                specs = await ProfessionalAPI.GetSpecializations();
+
+                specOptions = specs?
+                .Select(p => new Option<string>
+                    {
+                        Value = p.Id.ToString(),
+                        Text = p.Name,
+                        Selected = p.Id == User.SpecializationId ? true : false
+                    }).ToList();
             }
         }
     }
@@ -231,5 +434,56 @@ else
             await FavoriteAPI.AddFavorite(User.Id, int.Parse(clientId));
             isFavorite = true; 
         }
+    }
+
+    private async Task SaveChanges()
+    {
+        User.Specialization = spec.Text;
+        User.SpecializationId = int.Parse(spec.Value);
+        await ProfessionalAPI.UpdatePro(User);
+        if (selectedImage != null)
+        {
+            var streamPart = new StreamPart(photo.Stream, Path.ChangeExtension(Path.GetRandomFileName(), Path.GetExtension(photo.Name)), "image/jpeg");
+            await ProfessionalAPI.SaveImage(User.Id, streamPart);
+        }
+        ToastService.ShowSuccess("Данные изменены");
+    }
+
+    private async Task ChangeProStatus()
+    {
+        if (isClosed)
+        {
+            await ProfessionalAPI.UpdateStatus(User.Id);
+            isClosed = false;
+        }
+        else
+        {
+            await ProfessionalAPI.UpdateStatus(User.Id);
+            isClosed = true;
+        }
+    }
+
+    async Task OnFileUploadedAsync(FluentInputFileEventArgs file)
+    {
+        progressPercent = file.ProgressPercent;
+        progressTitle = file.ProgressTitle;
+        photo = file;
+
+        if (file.Stream != null)
+        {
+            using (var ms = new MemoryStream())
+            {
+                await file.Stream.CopyToAsync(ms);
+                var imageBytes = ms.ToArray();
+                selectedImage = $"data:image/jpeg;base64,{Convert.ToBase64String(imageBytes)}";
+                selectedImagePath = $"{Navigation.BaseUri}/images/temp/{Path.GetRandomFileName()}.jpg";
+            }
+        }
+    }
+
+    void OnCompleted(IEnumerable<FluentInputFileEventArgs> files)
+    {
+        progressPercent = myFileByStream!.ProgressPercent;
+        progressTitle = myFileByStream!.ProgressTitle;
     }
 }

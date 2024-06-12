@@ -12,9 +12,16 @@
 
 <FluentLayout>
     <FluentHeader>
-        Farola
-        <FluentStack HorizontalAlignment="HorizontalAlignment.End">  
-            <FluentLabel Color="Color.Fill" Typo="Typography.H4">@(CurrentUser.Role == "1" ? "Специалист " : "") @CurrentUser.UserName</FluentLabel>
+        <FluentNavLink Href="@($"/")">Farola</FluentNavLink>
+        <FluentStack HorizontalAlignment="HorizontalAlignment.End">
+            @if(CurrentUser.Role=="1")
+            {
+                <FluentNavLink Href="@($"/professional/{CurrentUser.Id}")">Специалист @CurrentUser.UserName</FluentNavLink>
+            }
+            else
+            {
+                <FluentLabel Color="Color.Fill" Typo="Typography.H4">@CurrentUser.UserName</FluentLabel>
+            }
             <FluentButton id="auth_menu" IconStart="@(new Icons.Filled.Size48.Person())" Appearance="Appearance.Accent" @onclick="@(() => open = !open)">
             </FluentButton>
             <FluentMenu Anchor="auth_menu" @bind-Open="open" VerticalThreshold="170">

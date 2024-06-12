@@ -57,6 +57,7 @@ namespace Farola.API.Infrastructure.Queries
             _ = int.TryParse(request.Specialization, out int specId);
             var pros = await _context.Users
                 .Where(u => u.RoleId == 1 &&
+                u.IsClosed != true &&
                 (request.Profession == null || (u.Profession != null && u.Profession.ToLower().Contains(request.Profession.ToLower()))) &&
                 ((request.Specialization == null || specId == 0) ||
                 u.SpecializationId == specId))

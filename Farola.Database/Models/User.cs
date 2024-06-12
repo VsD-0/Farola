@@ -83,6 +83,11 @@ public partial class User
     /// </summary>
     public string? RefreshToken { get; set; }
 
+    /// <summary>
+    /// Статус профиля специалиста (открыт/закрыт)
+    /// </summary>
+    public bool IsClosed { get; set; }
+
     public virtual ICollection<Favorite> FavoriteClients { get; set; } = new List<Favorite>();
 
     public virtual ICollection<Favorite> FavoriteProfessionals { get; set; } = new List<Favorite>();

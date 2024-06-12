@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 
 namespace Farola.Database.Models;
 
@@ -150,6 +148,7 @@ public partial class FarolaContext : DbContext
                 .HasColumnName("name");
             entity.Property(e => e.Photo)
                 .HasMaxLength(100)
+                .HasComment("Фото специализации")
                 .HasColumnName("photo");
         });
 
@@ -241,6 +240,10 @@ public partial class FarolaContext : DbContext
             entity.Property(e => e.Information)
                 .HasComment("Подробная информация")
                 .HasColumnName("information");
+            entity.Property(e => e.IsClosed)
+                .HasDefaultValue(false)
+                .HasComment("Статус профиля специалиста (открыт/закрыт)")
+                .HasColumnName("is_closed");
             entity.Property(e => e.Name)
                 .HasMaxLength(50)
                 .HasComment("Имя пользователя")
