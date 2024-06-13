@@ -177,7 +177,7 @@
                     else
                     {
                         <FluentGridItem xxl="2" xl="2" lg="2" md="2" sm="2" xs="2">
-                            <FluentPersona Image="selectedImage" ImageSize="80px"></FluentPersona>
+                            <FluentPersona Image="@selectedImage" ImageSize="80px"></FluentPersona>
                         </FluentGridItem>
                     }
                     <FluentGridItem xxl="8" xl="8" lg="8" md="8" sm="8" xs="8" Justify="JustifyContent.FlexStart">
@@ -198,18 +198,7 @@
                         }
                     </FluentGridItem>
                     <FluentGridItem xxl="12" xl="12" lg="12" md="12" sm="12" xs="12">
-                        <FluentStack>
-                            <FluentInputFile @ref="@myFileByStream"
-                                             AnchorId="MyUploadStream"
-                                             DragDropZoneVisible="false"
-                                             Mode="InputFileMode.Stream"
-                                             Accept=".jpg"
-                                             OnFileUploaded="@OnFileUploadedAsync"
-                                             OnCompleted="@OnCompleted" />
-                                <FluentButton Appearance="Appearance.Accent" Id="MyUploadStream">
-                                    Изменить фото
-                                </FluentButton>
-                            </FluentStack>
+                            <InputFile OnChange="@OnFileUploadedAsync" />
                         </FluentGridItem>
                     <FluentGridItem xxl="12" xl="12" lg="12" md="12" sm="12" xs="12" Justify="JustifyContent.FlexStart">
                         <FluentStack Orientation="Orientation.Horizontal">
@@ -235,8 +224,11 @@
                     <FluentGridItem xxl="12" xl="12" lg="12" md="12" sm="12" xs="12">
                         <FluentTextArea Spellcheck=true Resize="TextAreaResize.Vertical" @bind-Value=@User.Information Placeholder="Введите информацию о себе" Rows="5" Style="width: 100%; font-size: 12pt"></FluentTextArea>
                     </FluentGridItem>
-                    <FluentGridItem xxl="12" xl="12" lg="12" md="12" sm="12" xs="12">
+                    <FluentGridItem xxl="6" xl="6" lg="6" md="6" sm="6" xs="6">
                         <FluentButton OnClick="SaveChanges">Сохранить изменения</FluentButton>
+                    </FluentGridItem>
+                    <FluentGridItem xxl="6" xl="6" lg="6" md="6" sm="6" xs="6" Justify="JustifyContent.FlexEnd">
+                        <FluentButton OnClick="@PrintProfessionalInfo">Печать информации</FluentButton>
                     </FluentGridItem>
                     <FluentGridItem xxl="12" xl="12" lg="12" md="12" sm="12" xs="12">
                         <FluentButton OnClick="ChangeProStatus">@(isClosed ? "Открыть профиль" : "Закрыть профиль")</FluentButton>
@@ -338,7 +330,7 @@ else
     FluentInputFile? myFileByStream = default!;
     int? progressPercent;
     string? progressTitle;
-    FluentInputFileEventArgs photo;
+    InputFileChangeEventArgs photo;
 
     private string? selectedImage;
     private string selectedImagePath = "images/professionals/placeholder.jpg";
@@ -443,7 +435,8 @@ else
         await ProfessionalAPI.UpdatePro(User);
         if (selectedImage != null)
         {
-            var streamPart = new StreamPart(photo.Stream, Path.ChangeExtension(Path.GetRandomFileName(), Path.GetExtension(photo.Name)), "image/jpeg");
+            using var stream = photo.File.OpenReadStream();
+            var streamPart = new StreamPart(stream, Path.ChangeExtension(Path.GetRandomFileName(), Path.GetExtension(photo.File.Name)), "image/jpeg");
             await ProfessionalAPI.SaveImage(User.Id, streamPart);
         }
         ToastService.ShowSuccess("Данные изменены");
@@ -463,27 +456,30 @@ else
         }
     }
 
-    async Task OnFileUploadedAsync(FluentInputFileEventArgs file)
+    async Task OnFileUploadedAsync(InputFileChangeEventArgs file)
     {
-        progressPercent = file.ProgressPercent;
-        progressTitle = file.ProgressTitle;
         photo = file;
 
-        if (file.Stream != null)
+        if (file.File != null)
         {
-            using (var ms = new MemoryStream())
-            {
-                await file.Stream.CopyToAsync(ms);
-                var imageBytes = ms.ToArray();
-                selectedImage = $"data:image/jpeg;base64,{Convert.ToBase64String(imageBytes)}";
-                selectedImagePath = $"{Navigation.BaseUri}/images/temp/{Path.GetRandomFileName()}.jpg";
-            }
+            using var ms = new MemoryStream();
+            await file.File.OpenReadStream().CopyToAsync(ms);
+            var imageBytes = ms.ToArray();
+            selectedImage = $"data:image/jpeg;base64,{Convert.ToBase64String(imageBytes)}";
+            selectedImagePath = $"{Navigation.BaseUri}/images/temp/{Path.GetRandomFileName()}.jpg";
         }
     }
 
-    void OnCompleted(IEnumerable<FluentInputFileEventArgs> files)
+    private async Task PrintProfessionalInfo()
     {
-        progressPercent = myFileByStream!.ProgressPercent;
-        progressTitle = myFileByStream!.ProgressTitle;
+        if (User != null)
+        {
+            await JSRuntime.InvokeAsync<object>("printProfessionalInfo",
+            User?.Surname, User?.Name, User?.Patronymic ?? "", User?.Profession, User?.Specialization, User?.Information);
+        }
+        else
+        {
+            ToastService.ShowError("Информация о специалисте недоступна");
+        }
     }
 }

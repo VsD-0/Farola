@@ -14,10 +14,6 @@
     <FluentNavMenu Width="250" Collapsible="true" Title="Custom navigation menu" @bind-Expanded=isOpen>
         <FluentNavLink Href="/" Match="NavLinkMatch.All" Icon="@Icon.FromImageUrl("/images/home.svg")" IconColor="Color.Accent" Style="font-size: 1.4em">Главная</FluentNavLink>
         <FluentNavLink Href="/professional/all/search" Icon="@Icon.FromImageUrl("/images/specializations.svg")" IconColor="Color.Accent" Style="font-size: 1.4em">Специалисты</FluentNavLink>
-        @if (CurrentUser.Role == "1")
-        {
-            <FluentNavLink Href="@($"/statements/{CurrentUser.Id}")" IconColor="Color.Accent" Style="font-size: 1.4em">Заявления</FluentNavLink>
-        }
         @if (specsList != null && isOpen)
         {
             <FluentListbox TOption="SpecStat"

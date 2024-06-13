@@ -11,12 +11,8 @@
 
 <InputFile OnChange="@OnFileUploadedAsync" />
 
-<div id="previewImage" style="display: none;"></div>
 <FluentStack>
      <FluentPersona Image="@(selectedImage == null ? new Icons.Filled.Size48.Person().ToDataUri(size: "40px", color: "white") : selectedImage)" ImageSize="80px"></FluentPersona>
-<FluentButton Appearance="Appearance.Accent" Id="MyUploadStream">
-    Загрузка фото
-</FluentButton>
 </FluentStack>
 
 <FluentEditForm Model="@pro" OnSubmit="Submit">
@@ -44,7 +40,6 @@
     private IEnumerable<Specialization>? specs;
     private List<Option<string>>? specOptions;
     private Option<string>? spec = null;
-    FluentInputFile? myFileByStream = default!;
     int? progressPercent;
     string? progressTitle;
 
@@ -81,23 +76,17 @@
         }
     }
 
-    void OnCompleted(IEnumerable<FluentInputFileEventArgs> files)
-    {
-        progressPercent = myFileByStream!.ProgressPercent;
-        progressTitle = myFileByStream!.ProgressTitle;
-    }
-
     private async Task Submit()
     {
         using var stream = photo.File.OpenReadStream();
         var streamPart = new StreamPart(stream, Path.ChangeExtension(Path.GetRandomFileName(), Path.GetExtension(photo.File.Name)), "image/jpeg");
 
-        //pro.Specialization = int.Parse(spec.Value);
-        //var user = await ProfessionalAPI.SignUp(pro);
-        // if (user != null)
-        // {
-        await ProfessionalAPI.SaveImage(15, streamPart);
-        // }
-        //Navigation.NavigateTo("/professional/all/search");
+        pro.Specialization = int.Parse(spec.Value);
+        var user = await ProfessionalAPI.SignUp(pro);
+        if (user != null)
+        {
+            await ProfessionalAPI.SaveImage(user.Id, streamPart);
+        }
+        Navigation.NavigateTo("/professional/all/search");
     }
 }
