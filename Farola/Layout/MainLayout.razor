@@ -12,7 +12,7 @@
 
 <FluentLayout>
     <FluentHeader>
-        <FluentNavLink Href="@($"/")">Farola</FluentNavLink>
+        <FluentNavLink Href="@($"/")" Style="font-size:1.3em">Farola</FluentNavLink>
         <FluentStack HorizontalAlignment="HorizontalAlignment.End">
             @if(CurrentUser.Role=="1")
             {
@@ -31,7 +31,7 @@
                         <FluentNavLink Href="/user/signin">Войти</FluentNavLink>
                         <FluentNavGroup Title="Зарегистрироваться">
                             <ChildContent>
-                            <FluentNavLink Href="/applicant/signup" IconColor="Color.Accent">Пользователь</FluentNavLink>
+                            <FluentNavLink Href="/applicant/signup" IconColor="Color.Accent">Соискатель</FluentNavLink>
                             <FluentNavLink Href="/professional/signup" IconColor="Color.Accent">Специалист</FluentNavLink>
                         </ChildContent>
                         </FluentNavGroup>

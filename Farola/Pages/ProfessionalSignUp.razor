@@ -18,6 +18,7 @@
 <FluentEditForm Model="@pro" OnSubmit="Submit">
     <FluentTextField Id="Surname" @bind-Value=pro.Surname Placeholder="Введите фамилию" Label="Фамилия" Required/>
     <FluentTextField Id="Name" @bind-Value=pro.Name Placeholder="Введите имя" Label="Имя" Required />
+    <FluentTextField Id="Patronymic" @bind-Value=pro.Patronymic Placeholder="Введите отчество" Label="Отчество" />
     <FluentTextField Id="PhoneNumber" @bind-Value=pro.Phone_number TextFieldType="TextFieldType.Tel" Placeholder="Введите номер телефона" Label="Номер телефона" Required />
     <FluentTextField Id="Email" @bind-Value=pro.Email TextFieldType="TextFieldType.Email" Spellcheck="true" Placeholder="Введите эл. почту" Label="Эл. почта" Required />
     <FluentTextField Id="Password" @bind-Value=pro.Password TextFieldType="TextFieldType.Password" Placeholder="Введите пароль" Label="Пароль" Required />

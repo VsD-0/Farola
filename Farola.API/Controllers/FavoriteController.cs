@@ -23,13 +23,13 @@ namespace Farola.API.Controllers
 
         [HttpGet("GetFavorites/{clientId}")]
         [Authorize(Roles = "2")]
-        public async Task<IActionResult> GetFavorites(int clientId) => Ok(await _context.Favorites
+        public async Task<IActionResult> GetFavorites(int clientId) => Ok((await _context.Favorites
                 .Where(f => f.ClientId == clientId)
                 .Join(_context.Users.Where(u => u.RoleId == 1),
                 f => f.ProfessionalId,
                 p => p.Id,
                 (f, p) => new { Favorite = f, Professional = p })
-                .Select(x => x.Professional).ToListAsync());
+                .Select(x => x.Professional).ToListAsync()).Reverse<User>());
 
         [HttpPost("AddFavorite/{proid}/{clientid}")]
         [Authorize(Roles = "2")]

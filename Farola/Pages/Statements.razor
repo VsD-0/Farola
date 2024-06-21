@@ -324,7 +324,7 @@
             if (role == "1" || await StatementAPI.IsExistGrade(statementId))
             {
                 await StatementAPI.SaveComment(statementId, comment, role);
-                ToastService.ShowSuccess("Комментарий сохранён");
+                ToastService.ShowSuccess("Примечание сохранено");
             }
             else
             {

@@ -11,23 +11,22 @@
 @* See all the diffeent ways on how to use icons at https://www.fluentui-blazor.net/Icon *@
 
 <nav>
-    <FluentNavMenu Width="250" Collapsible="true" Title="Custom navigation menu" @bind-Expanded=isOpen>
-        <FluentNavLink Href="/" Match="NavLinkMatch.All" Icon="@Icon.FromImageUrl("/images/home.svg")" IconColor="Color.Accent" Style="font-size: 1.4em">Главная</FluentNavLink>
-        <FluentNavLink Href="/professional/all/search" Icon="@Icon.FromImageUrl("/images/specializations.svg")" IconColor="Color.Accent" Style="font-size: 1.4em">Специалисты</FluentNavLink>
+    <FluentNavMenu Width="280" Collapsible="true" Title="Custom navigation menu" @bind-Expanded=isOpen>
+        <FluentNavLink Href="/" Match="NavLinkMatch.All" Icon="@Icon.FromImageUrl("/images/home.svg")" IconColor="Color.Accent" Style="font-size: 1.5em">Главная</FluentNavLink>
+        <FluentNavLink Href="/professional/all/search" Icon="@Icon.FromImageUrl("/images/specializations.svg")" IconColor="Color.Accent" Style="font-size: 1.5em">Специалисты</FluentNavLink>
         @if (specsList != null && isOpen)
         {
             <FluentListbox TOption="SpecStat"
             Items="@specsList"
             Id="spec-listbox"
-            Height="150%"
             Multiple=false
             OptionValue="@(s => s.Spec.Id.ToString())"
             OptionText="@(s => s.Spec.Name)"
             @bind-Value="@SelectedValue"
             @bind-SelectedOption="@SelectedItem">
                 <OptionTemplate>
-                     <span style="font-size: 18px;">@context.Spec.Name</span>
-                     <span style="font-size: 18px;">(@context.Count)</span>
+                     <span style="font-size: 20px;">@context.Spec.Name</span>
+                     <span style="font-size: 20px;">(@context.Count)</span>
                 </OptionTemplate>
             </FluentListbox>
         }

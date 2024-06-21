@@ -28,6 +28,13 @@ namespace Farola.API.Infrastructure.Commands
         [BindRequired]
         public string Name { get; set; }
         /// <summary>
+        /// Отчество
+        /// </summary>
+        /// <example>Иванович</example>
+        [FromBody]
+        [BindRequired]
+        public string? Patronymic { get; set; }
+        /// <summary>
         /// Номер телефона
         /// </summary>
         /// <example>89271584836</example>
@@ -109,6 +116,7 @@ namespace Farola.API.Infrastructure.Commands
             {
                 Surname = request.Surname,
                 Name = request.Name,
+                Patronymic = request.Patronymic,
                 PhoneNumber = request.Phone_number,
                 Email = request.Email,
                 Password = request.Password,

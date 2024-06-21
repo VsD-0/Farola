@@ -114,8 +114,8 @@ namespace Farola.API.Controllers
                     Grade = x.FirstOrDefault().Review.Grade,
                     Text = x.FirstOrDefault().Review.Text,
                     DateAdded = x.FirstOrDefault().Review.DateAdded
-                })
-                .OrderByDescending(x => x.Grade);
+                }).Where(x => x.AvgGrade >= 4)
+                .OrderByDescending(x => x.CountGrade).ThenByDescending(x => x.AvgGrade).ThenByDescending(x => x.Grade).ThenByDescending(x => x.DateAdded);
 
             var skip = (pageNumber - 1) * pageSize;
             var result = new List<ReviewViewModel>(reviews.Skip(skip).Take(pageSize));
